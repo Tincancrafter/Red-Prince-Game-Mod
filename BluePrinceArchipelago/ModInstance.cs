@@ -575,12 +575,19 @@ namespace BluePrinceArchipelago
         }
         public static void OnDraftBeforeInitialize()
         {
+            if (ArchipelagoClient.Authenticated)
+            {
+                Plugin.ModRoomManager.RecheckRoomUnlockStatus();
+            }
         }
 
         // Handles initializing rooms. Called when a draft is about to start (e.g., player opens a door).
         public static void OnDraftInitialize() 
         {
-            
+            if (ArchipelagoClient.Authenticated)
+            {
+                Plugin.ModRoomManager.RecheckRoomUnlockStatus();
+            }
         }
 
         public static void OnOuterDraftStart(OuterDraftManager draftManager) {
