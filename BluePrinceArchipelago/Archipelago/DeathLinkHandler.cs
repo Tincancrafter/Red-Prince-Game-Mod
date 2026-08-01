@@ -48,6 +48,10 @@ public class DeathLinkHandler
             service.EnableDeathLink();
             State.UpdateDeathLinkData();
         }
+        else {
+            service.DisableDeathLink();
+            State.UpdateDeathLinkData();
+        }
     }
 
     /// <summary>

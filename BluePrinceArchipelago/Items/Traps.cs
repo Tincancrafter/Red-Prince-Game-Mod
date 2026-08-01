@@ -27,6 +27,8 @@ namespace BluePrinceArchipelago.Items
             if (ModInstance.IsInRun && isFrozen != null && !isFrozen.Value)
             {
                 isFrozen.Value = true;
+                Logging.LogWarning(ModInstance.GemManager.GetIntVariable("Gems").Value);
+                Logging.LogWarning(ModInstance.GoldManager.GetIntVariable("Gold").Value);
                 ModInstance.GlobalPersistentManager.GetIntVariable("YesterFreezerGems").Value = ModInstance.GemManager.GetIntVariable("Gems").Value;
                 ModInstance.GlobalPersistentManager.GetIntVariable("YesterFreezerGold").Value = ModInstance.GoldManager.GetIntVariable("Gold").Value;
                 ModInstance.GoldManager.SendEvent("Freeze");

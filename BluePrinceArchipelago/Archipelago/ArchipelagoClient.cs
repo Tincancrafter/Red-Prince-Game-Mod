@@ -174,8 +174,7 @@ public class ArchipelagoClient
         if (result.Successful)
         {
             var success = (LoginSuccessful)result;
-            // Initialize DeathLinkHandler.
-            DeathLinkHandler = new(session.CreateDeathLinkService(), ServerData.SlotName);
+            
 
             // Handles the reconnection to the Server.
             if (Reconnected)
@@ -185,6 +184,8 @@ public class ArchipelagoClient
                     // Regular Recconnect;
                     ServerData.Options = session.DataStorage.GetSlotData<SlotData>();
                     ArchipelagoOptions.LoadFromSlotData(ServerData.Options);
+                    // Initialize DeathLinkHandler.
+                    DeathLinkHandler = new(session.CreateDeathLinkService(), ServerData.SlotName, ArchipelagoOptions.DeathLinkType != DeathLinkType.option_none);
                     Reconnect();
                 }
                 else {
@@ -192,6 +193,8 @@ public class ArchipelagoClient
                     State.InitializeReceivedItems();
                     ServerData.Options = session.DataStorage.GetSlotData<SlotData>();
                     ArchipelagoOptions.LoadFromSlotData(ServerData.Options);
+                    // Initialize DeathLinkHandler.
+                    DeathLinkHandler = new(session.CreateDeathLinkService(), ServerData.SlotName, ArchipelagoOptions.DeathLinkType != DeathLinkType.option_none);
                     GameRestart();
                 }
                 ArchipelagoConsole.LogMessage($"Successfully Recconnected to {ServerData.Uri} as {ServerData.SlotName}!");
@@ -205,6 +208,8 @@ public class ArchipelagoClient
                 ServerData.Index = 0;
                 // Load options into the static ArchipelagoOptions class
                 ArchipelagoOptions.LoadFromSlotData(ServerData.Options);
+                // Initialize DeathLinkHandler.
+                DeathLinkHandler = new(session.CreateDeathLinkService(), ServerData.SlotName, ArchipelagoOptions.DeathLinkType != DeathLinkType.option_none);
 
                 session.Locations.CompleteLocationChecksAsync(ServerData.CheckedLocations.ToArray());
                 // Creates the Locally Stored data for the locations. 

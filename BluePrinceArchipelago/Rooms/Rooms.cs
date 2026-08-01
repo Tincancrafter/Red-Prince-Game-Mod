@@ -19,7 +19,7 @@ namespace BluePrinceArchipelago.Rooms
 
         public static List<string> VanillaRooms = [];
         public static List<string> CantCopy = ["ANTECHAMBER", "ENTRANCE HALL", "ROOM 46", "FOUNDATION", ""];
-        public static List<string> FoundFloorplans = ["PLANETARIUM", "CONSERVATORY", "TUNNEL", "THRONE ROOM", "TREASURE TROVE", "MECHANARIUM", "LOST & FOUND", "CLOSED EXHIBIT", "CLOCK TOWER", "THE KENNEL", "VESTIBULE", "DOVECOTE", "SOLARIUM", "DORMITORY", "CASINO", "SAUNA", "LOCKER ROOM", "MORNING ROOM"];
+        public static List<string> FoundFloorplans = ["PLANETARIUM", "CONSERVATORY", "TUNNEL", "THRONE ROOM", "TREASURE TROVE", "MECHANARIUM", "LOST & FOUND", "CLOSED EXHIBIT", "CLOCK TOWER", "THE KENNEL", "VESTIBULE", "DOVECOTE", "SOLARIUM", "DORMITORY", "CASINO", "SAUNA", "LOCKER ROOM", "MORNING ROOM", "CLASSROOM"];
 
         public static Dictionary<string, string> UpgradeIDs = new Dictionary<string, string>()
         {
@@ -157,6 +157,35 @@ namespace BluePrinceArchipelago.Rooms
             return false;
         }
 
+        // Sets all rooms to the correct unlock state. (for in case the game changed it or for if the state changed since it's last check).
+        public void RecheckRoomUnlockStatus() {
+            // Forcibly set certain rooms as removed from the pool so they are not actually draftable.
+            foreach (ModRoom room in Rooms)
+            {
+                // If the room is unlocked.
+                if (room.IsUnlocked)
+                {
+                    // If there are still copies in today's pool (or a safety for if extra copies are added without the mod tracking it.)
+                    if (room.IsUnlocked && (room.RoomInHouseCount > 0 || room.RoomsLeftInPool > 0))
+                    {
+                        // Confirm all dependencies of the room have been met. If one is not met, turn the room off until the next draft. (very important for Foundation)
+                        foreach (Func<ModRoom, bool> dependency in room.Dependencies)
+                        {
+                            if (!dependency.Invoke(room))
+                            {
+                                SetPoolRemovalVar(room.GameObjectName, true);
+                                return;
+                            }
+                        }
+                        SetPoolRemovalVar(room.GameObjectName);
+                        return;
+                    }
+                }
+                SetPoolRemovalVar(room.GameObjectName, true);
+                return;
+            }
+        }
+
         public void RemoveRoom(ModRoom room)
         {
             if (room.RoomPoolCount > 0) {
@@ -164,7 +193,16 @@ namespace BluePrinceArchipelago.Rooms
             }
             room.IsUnlocked = false;
         }
+        public void HLCFix() {
+            // A fix for the HLC being deactivated for days 8+ on veteran mode.
 
+            if (ModInstance.GlobalPersistentManager.GetBoolVariable("_Veteran Player").Value) {
+                ModRoom HLC = GetRoomByName("HER LADYSHIP\'S CHAMBER");
+                if (HLC.IsUnlocked) {
+                    SetPoolRemovalVar("HER LADYSHIP\'S CHAMBER");
+                }
+            }
+        }
         /// <summary>
         /// Resets the room in house count for all rooms. Call this at the start of a new day.
         /// </summary>
@@ -465,6 +503,33 @@ namespace BluePrinceArchipelago.Rooms
                 "CORRIYARD" => "COURTYARD",
                 _ => roomName  
             };
+        }
+        public void SetPoolRemovalVar(string name, bool value = false) {
+            string roomPath = "__SYSTEM/The Room Engines/" + name;
+            GameObject roomEngine = GameObject.Find(roomPath);
+            if (roomEngine != null)
+            {
+                PlayMakerFSM fsm = roomEngine.GetComponent<PlayMakerFSM>();
+                if (fsm != null)
+                {
+                    FsmBool poolRemovalVar = fsm.GetBoolVariable("POOL REMOVAL");
+                    if (poolRemovalVar != null)
+                    {
+                        // POOL REMOVAL = true means room is NOT available (removed from pool)
+                        // POOL REMOVAL = false means room IS available (in pool)
+                        poolRemovalVar.Value = value;
+                        Logging.LogDebug($"Room '{name.ToTitleCase()}' (GO: {name}) POOL REMOVAL set to {!value} (IsUnlocked={value})");
+                    }
+                    else
+                    {
+                        Logging.LogWarning($"Room '{name.ToTitleCase()}' (GO: {name}): Could not find 'POOL REMOVAL' variable in FSM");
+                    }
+                }
+                else
+                {
+                    Logging.LogWarning($"Room 'Room '{name.ToTitleCase()}' (GO: {name}): Could not find FSM named '{name}'");
+                }
+            }
         }
 
         public void UpdateCurrentPickerArrays() {

@@ -4,6 +4,7 @@ using BluePrinceArchipelago.Rooms.RoomHandlers;
 using BluePrinceArchipelago.Utils;
 using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
+using StableNameDotNet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,34 +42,13 @@ namespace BluePrinceArchipelago.Items
 
         public bool IsPersistent { get; set; }
 
-        public bool IsCommissary { get {
-                return _ShopTags.Contains("Commissary");
-            } }
+        public bool IsCommissary { set; get; } = false;
 
+        public bool IsDig { set; get; } = false;
 
+        public bool IsLocksmith { set; get; } = false;
 
-        public bool IsDig
-        {
-            get
-            {
-                return _ShopTags.Contains("Dig");
-            }
-        }
-        public bool IsLocksmith
-        {
-            get
-            {
-                return _ShopTags.Contains("Locksmith");
-            }
-        }
-
-        public bool IsShowRoom
-        {
-            get
-            {
-                return _ShopTags.Contains("Showroom");
-            }
-        }
+        public bool IsShowRoom { set; get; } = false;
 
         public SendEvent CommissaryEvent { get; set; } = null;
 
@@ -109,11 +89,27 @@ namespace BluePrinceArchipelago.Items
             _SanityType = sanityType;
             IsPersistent = isPersistent;
             _ShopTags = shopTags ?? new List<string>();
+            foreach (string tag in _ShopTags) {
+                if (tag == "Commissary")
+                {
+                    IsCommissary = true;
+                }
+                else if (tag == "Dig")
+                {
+                    IsDig = true;
+                }
+                else if (tag == "Locksmith") {
+                    IsLocksmith = true;
+                }
+                else if (tag == "Showroom") {
+                    IsShowRoom = true;
+                }
+            }
 
             FSMEventHandler.AddFSMEvent(name, this);
             if (IsCommissary)
             {
-                CommissaryEvent = FSMEventHandler.AddBuyFSMEvent("Commissary: Bought" + name, this).Event;
+                CommissaryEvent = FSMEventHandler.AddBuyFSMEvent("Commissary: Bought " + name, this).Event;
             }
             if (IsDig)
             {
@@ -121,10 +117,10 @@ namespace BluePrinceArchipelago.Items
             }
             if (IsLocksmith)
             {
-                LocksmithEvent = FSMEventHandler.AddBuyFSMEvent("Locksmith: Bought" + name, this).Event;
+                LocksmithEvent = FSMEventHandler.AddBuyFSMEvent("Locksmith: Bought " + name, this).Event;
             }
             if (IsShowRoom) { 
-                ShowRoomEvent = FSMEventHandler.AddBuyFSMEvent("Showroom: Bought" + name, this).Event;
+                ShowRoomEvent = FSMEventHandler.AddBuyFSMEvent("Showroom: Bought " + name, this).Event;
             }
             
         }
@@ -285,7 +281,7 @@ namespace BluePrinceArchipelago.Items
                 {"STOPWATCH", "Stopwatch"},
                 {"KNIGHTS SHIELD", "Knight's Sheild"}
             };
-            Dictionary<string, string> LockSmithStates = new Dictionary<string, string>()
+            Dictionary<string, string> LocksmithStates = new Dictionary<string, string>()
             {
                 {"SECRET GARDEN KEY", "Secret Garden Key Purchase"},
                 {"PRISM KEY_0", "Prism Key Purchase"},
@@ -313,7 +309,7 @@ namespace BluePrinceArchipelago.Items
                 // Handles updating the Commissary Menu
                 if (!item.HasBeenFound && item.IsCommissary)
                 {
-                    FsmState state = ModInstance.CommissaryMenu?.GetState(CommissaryStates[item.Name]);
+                    FsmState state = ModInstance.CommissaryMenu?.GetState(CommissaryStates[item.Name.Trim()]);
                     item.CommissaryState = state;
                     if (state != null)
                     {
@@ -327,7 +323,7 @@ namespace BluePrinceArchipelago.Items
                     }
                 }
                 if (!item.HasBeenFound && item.IsDig) {
-                    FsmState state = ModInstance.DigEngine?.GetState(DigStates[item.Name]);
+                    FsmState state = ModInstance.DigEngine?.GetState(DigStates[item.Name.Trim()]);
                     item.DigState = state;
                     if (state != null)
                     {
@@ -342,11 +338,12 @@ namespace BluePrinceArchipelago.Items
                 }
                 if (!item.HasBeenFound && item.IsLocksmith)
                 {
-                    FsmState state = ModInstance.LocksmithMenu?.GetState(LockSmithStates[item.Name]);
+                    // Does not load properly unless loaded like so.
+                    FsmState state = GameObject.Find("UI OVERLAY CAM").transform.Find("Locksmith Menu").gameObject.GetComponent<PlayMakerFSM>().GetState(LocksmithStates[item.Name.Trim()]);
                     item.LocksmithState = state;
                     if (state != null)
                     {
-                        //If the item is not unlocked, prevent it from being added to inventory.
+                        // If the item is not unlocked, prevent it from being added to inventory.
                         if (!item.IsUnlocked && item.ApplySanity())
                         {
                             //Disable the actions that add the item to inventory.

@@ -15,6 +15,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static Rewired.Glyphs.UnityUI.UnityUITextMeshProGlyphHelper.Tag;
 
 namespace BluePrinceArchipelago
 {
@@ -168,7 +169,7 @@ namespace BluePrinceArchipelago
                 TheGrid = GameObject.Find("__SYSTEM/THE GRID")?.GetComponent<PlayMakerFSM>();
                 MasterPicker = GameObject.Find("__SYSTEM/THE DRAFT/PLAN PICKER/MASTER PICKER - OVERRIDE")?.GetComponent<PlayMakerFSM>();
                 LocksmithMenu = GameObject.Find("UI OVERLAY CAM/Locksmith Menu")?.GetComponent<PlayMakerFSM>();
-                CommissaryMenu = GameObject.Find("UI OVERLAY CAM/Commissary Menu/")?.GetComponent<PlayMakerFSM>();
+                CommissaryMenu = GameObject.Find("UI OVERLAY CAM/Commissary Menu")?.GetComponent<PlayMakerFSM>();
                 EndGameClicker = GameObject.Find("ROOMS/Antechamber/NON STATIC/DOOR 46/grey door/End Game Clicker")?.GetComponent<PlayMakerFSM>();//TODO get the full proper path name for this GameObject.
                 DraftValidationAction = MasterPicker.GetState("3").GetFirstActionOfType<CallMethod>();
                 RoomText = GameObject.Find("__SYSTEM/HUD/Room Text")?.GetComponent<PlayMakerFSM>();
@@ -463,6 +464,7 @@ namespace BluePrinceArchipelago
                 {
                     FSMPatches.UpgradeDiskOverride(GlobalManager);
                 }
+                Plugin.ModRoomManager.HLCFix();
                 Unlocks.AttemptPrePatch(); //Apply patches to the FSMs
                 Unlocks.AppleOrchard.PreventDefault();
                 Unlocks.WestGatePath.PreventDefault();
@@ -858,6 +860,7 @@ namespace BluePrinceArchipelago
                 Unlocks.SatelliteDish.PreventDefault();
                 Plugin.UniqueItemManager.StartOfDay();
                 Plugin.ArchipelagoClient.DeathLinkHandler.KillPlayer();
+                Plugin.ModRoomManager.HLCFix();
             }
         }
         private static void InitializeUpgradeDiskNotifications()
