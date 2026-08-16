@@ -102,7 +102,7 @@ namespace BluePrinceArchipelago.Utils
         /// <param name="arrayListProxy">The PlayMakerArrayListProxy</param>
         /// <param name="name">The name of the object to remove from the array.</param>
         public static void RemoveIfExists(this PlayMakerArrayListProxy arrayListProxy, string name) {
-            for (int i = 0; i < arrayListProxy.arrayList.Count; i++) { 
+            for (int i = arrayListProxy.arrayList.Count - 1; i >= 0; i--) {
                 GameObject item = arrayListProxy?.arrayList[i]?.TryCast<GameObject>();
                 if (item.name.ToUpper().Trim() == name.ToUpper().Trim()) {
                     arrayListProxy.RemoveAt(i);
@@ -328,15 +328,13 @@ namespace BluePrinceArchipelago.Utils
         /// <typeparam name="TAction">The type of actions to remove</typeparam>
         /// <param name="fsm">The fsm</param>
         /// <param name="stateName">The name of the state to get the actions from</param>
-
+        /// <returns>The action, null if it can't be found</returns>
         public static TAction GetFirstActionOfType<TAction>(this PlayMakerFSM fsm, string stateName) where TAction : FsmStateAction => fsm.GetState(stateName)!.GetFirstActionOfType<TAction>();
 
         /// <inheritdoc cref="GetFirstActionOfType{TAction}(PlayMakerFSM, string)"/>
-
+        /// <param name="fsm">The fsm</param>
+        /// <param name="stateName">The name of the state to get the actions from</param>
         public static TAction GetFirstActionOfType<TAction>(this Fsm fsm, string stateName) where TAction : FsmStateAction => fsm.GetState(stateName)!.GetFirstActionOfType<TAction>();
-
-        /// <inheritdoc cref="GetFirstActionOfType{TAction}(PlayMakerFSM, string)"/>
-        /// <param name="state">The fsm state</param>
 
         /// <summary>
         ///     Gets last action of a given type in an FsmState.  
@@ -344,7 +342,7 @@ namespace BluePrinceArchipelago.Utils
         /// <typeparam name="TAction">The type of actions to remove</typeparam>
         /// <param name="fsm">The fsm</param>
         /// <param name="stateName">The name of the state to get the actions from</param>
-
+        /// <returns>The action, null if it can't be found</returns>
         public static TAction GetLastActionOfType<TAction>(this PlayMakerFSM fsm, string stateName) where TAction : FsmStateAction => fsm.GetState(stateName)!.GetLastActionOfType<TAction>();
 
         /// <inheritdoc cref="GetLastActionOfType{TAction}(PlayMakerFSM, string)"/>
@@ -371,6 +369,13 @@ namespace BluePrinceArchipelago.Utils
             return state.GetAction<TAction>(lastActionIndex);
         }
 
+        /// <summary>
+        ///     Internal. Creates a new array with the new item added. 
+        /// </summary>
+        /// <typeparam name="TVal">The type of item to add to the array</typeparam>
+        /// <param name="origArray">The fsm</param>
+        /// <param name="value">The value to add to the array.</param>
+        /// <returns>The the new array with the value added.</returns>
         private static TVal[] AddItemToArray<TVal>(TVal[] origArray, TVal value)
         {
             TVal[] newArray = new TVal[origArray.Length + 1];
@@ -380,11 +385,10 @@ namespace BluePrinceArchipelago.Utils
         }
 
         /// <summary>
-        ///     Adds a state in a PlayMakerFSM.
+        ///     Adds a state to a PlayMakerFSM.
         /// </summary>
         /// <param name="fsm">The fsm</param>
-        /// <param name="stateName">The name of the state</param>
-        /// <returns>The created state</returns>
+        /// <param name="state">The Fsm state to add to the FSM.</param>
 
         public static void AddState(this PlayMakerFSM fsm, FsmState state)
         {
@@ -396,6 +400,8 @@ namespace BluePrinceArchipelago.Utils
             fsm.Fsm.States = states;
         }
 
+        /// <inheritdoc cref="AddState(PlayMakerFSM, FsmState)"/>
+        /// <param name="name">The name of the FSMState to create and add to the PlayMakerFSM.</param>
         public static FsmState AddState(this PlayMakerFSM fsm, string name)
         {
             FsmState state = new(fsm.Fsm)
@@ -408,12 +414,21 @@ namespace BluePrinceArchipelago.Utils
 
             return state;
         }
-
+        /// <summary>
+        ///     Gets an FsmState from a PlayMakerFSM.
+        /// </summary>
+        /// <param name="fsm">The fsm</param>
+        /// <param name="name">The name ofFsm state to get.</param>
+        /// <returns>Returns an FsmState or null if it couldn't be found</returns>
         public static FsmState GetState(this PlayMakerFSM fsm, string name)
         {
             return fsm?.FsmStates?.FirstOrDefault(s => s.Name == name);
         }
-
+        /// <summary>
+        ///     Adds an Action as the first action in an FsmState.
+        /// </summary>
+        /// <param name="state">The FsmState.</param>
+        /// <param name="action">The FsmStateAction to add.</param>
         public static void AddFirstAction(this FsmState state, FsmStateAction action)
         {
             FsmStateAction[] Actions = new FsmStateAction[state.Actions.Length + 1];
@@ -423,7 +438,11 @@ namespace BluePrinceArchipelago.Utils
             state.actions = Actions;
             action.Init(state);
         }
-
+        /// <summary>
+        ///     Adds an Action as the last action in an FsmState.
+        /// </summary>
+        /// <param name="state">The FsmState.</param>
+        /// <param name="action">The FsmStateAction to add.</param>
         public static void AddLastAction(this FsmState state, FsmStateAction action)
         {
             FsmStateAction[] actions = new FsmStateAction[state.Actions.Length + 1];
@@ -434,8 +453,20 @@ namespace BluePrinceArchipelago.Utils
             action.Init(state);
         }
 
+        /// <summary>
+        ///     Inserts an Action to an FSMState at a given index.
+        /// </summary>
+        /// <param name="state">The FsmState.</param>
+        /// <param name="action">The FsmStateAction to add.</param>
+        /// <param name="index">The index to add the action at. The index will be automatically contstrained to be in range.</param>
         public static void InsertAction(this FsmState state, FsmStateAction action, int index)
         {
+            if (index > state.Actions.Length) {
+                index = state.Actions.Length;
+            }
+            else if (index < 0){
+                index = 0;
+            }
             FsmStateAction[] actions = new FsmStateAction[state.Actions.Length + 1];
             for (int i = 0; i < state.Actions.Length; i++)
             {
@@ -446,9 +477,19 @@ namespace BluePrinceArchipelago.Utils
             state.Actions = actions;
             action.Init(state);
         }
-
+        /// <summary>
+        ///     Removes an Action to an FSMState at a given index.
+        ///     Trying to insert at an out of bounds index will cause a `ArgumentOutOfRangeException`.
+        /// </summary>
+        /// <param name="state">The FsmState.</param>
+        /// <param name="index">The index to add the action at.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Is thrown if the given index is out of range.</exception>
         public static void RemoveAction(this FsmState state, int index)
         {
+            if (index > state.Actions.Length && index < 0)
+            {
+                throw new ArgumentOutOfRangeException($"Index {index} was out of range for the actions array with length {state.Actions.Length}!");
+            }
             FsmStateAction[] actions = new FsmStateAction[state.Actions.Length - 1];
             for (int i = 0; i < state.Actions.Length - 1; i++)
             {
@@ -457,15 +498,36 @@ namespace BluePrinceArchipelago.Utils
             }
             state.Actions = actions;
         }
-
+        /// <summary>
+        ///     Replaces an Action from an FsmState at a given index.
+        /// </summary>
+        /// <param name="state">The FsmState.</param>
+        /// <param name="action">The FsmStateAction to add.</param>
+        /// <param name="index">The index to add the action at. The index will be automatically contstrained to be in range.</param>
         public static void ReplaceAction(this FsmState state, FsmStateAction action, int index)
         {
+            if (index > state.Actions.Length)
+            {
+                index = state.Actions.Length;
+            }
+            else if (index < 0)
+            {
+                index = 0;
+            }
             state.Actions[index] = action;
             action.Init(state);
         }
-
+        /// <summary>
+        ///     Removes all action from a state.
+        /// </summary>
+        /// <param name="state">The FsmState.</param>
         public static void ClearActions(this FsmState state) => state.SetActions(Array.Empty<FsmStateAction>());
 
+        /// <summary>
+        ///     Replaces all actions in a state with a given list of actions.
+        /// </summary>
+        /// <param name="state">The FsmState.</param>
+        /// <param name="actions">A list of any number of FsmStateAction arrays to set as the actions for an FsmState.</param>
         public static void SetActions(this FsmState state, params FsmStateAction[] actions)
         {
             state.Actions = actions;
@@ -474,49 +536,73 @@ namespace BluePrinceArchipelago.Utils
                 actions[i].Init(state);
             }
         }
-
+        /// <summary>
+        ///     Removes all actions of a given type from an FsmState.
+        /// </summary>
+        /// <typeparam name="T">The type of action to remove</typeparam>
+        /// <param name="state">The FsmState.</param>
         public static void RemoveActionsOfType<T>(this FsmState state) where T : FsmStateAction
         {
-            for (int i = 0; i < state.ActionData.ActionNames.Count; i++)
+            for (int i = state.ActionData.ActionNames.Count -1; i >= 0 ; i--)
             {
-                if (state.ActionData.ActionNames[i] == typeof(T).FullName) //A bit hacky, but it works.
+                if (state.ActionData.ActionNames[i] == typeof(T).FullName) //REVISIT: A bit hacky, but it works.
                 {
                     state.RemoveAction(i);
                 }
             }
         }
-
+        /// <summary>
+        ///     Removes the first action of a given type from an FsmState.
+        /// </summary>
+        /// <typeparam name="T">The type of action to remove.</typeparam>
+        /// <param name="state">The FsmState.</param>
         public static void RemoveFirstActionOfType<T>(this FsmState state) where T : FsmStateAction
         {
             int i = Array.FindIndex<FsmStateAction>(state.Actions, a => a is T);
             if (i >= 0) state.RemoveAction(i);
         }
-
+        /// <summary>
+        ///     Get all actions of a given type from an FsmState.
+        /// </summary>
+        /// <typeparam name="T">The type of action to get.</typeparam>
+        /// <param name="state">The FsmState.</param>
+        /// <returns>A list of actions that are of the matching type.</returns>
         public static T[] GetActionsOfType<T>(this FsmState state) where T : FsmStateAction
         {
             List<T> actions = [];
             for (int i = 0; i < state.ActionData.ActionNames.Count; i++)
             {
-                if (state.ActionData.ActionNames[i] == typeof(T).FullName) //A bit hacky, but it works.
+                if (state.ActionData.ActionNames[i] == typeof(T).FullName) // REVISIT: A bit hacky, but it works.
                 {
                     actions.Add(state.actions[i].TryCast<T>());
                 }
             }
             return actions.ToArray();
         }
-
+        /// <summary>
+        ///     Get the first action of a given type from an FsmState.
+        /// </summary>
+        /// <typeparam name="T">The type of action to get.</typeparam>
+        /// <param name="state">The FsmState.</param>
+        /// <returns>An FsmStateAction of the given type.</returns>
         public static T GetFirstActionOfType<T>(this FsmState state) where T : FsmStateAction
         {
             for (int i = 0; i < state.ActionData.ActionNames.Count; i++)
             {
-                if (state.ActionData.ActionNames[i] == typeof(T).FullName) //A bit hacky, but it works.
+                if (state.ActionData.ActionNames[i] == typeof(T).FullName) // REVISIT: A bit hacky, but it works.
                 {
                     return state.actions[i].TryCast<T>();
                 }
             }
             return null;
         }
-
+        /// <summary>
+        ///     Creates an FsmBool variable in an FSM.
+        /// </summary>
+        /// <param name="fsm">The FSM.</param>
+        /// <param name="name">The variable name of the FsmBool.</param>
+        /// <param name="value">The boolean value of the new variable.</param>
+        /// <returns>The newly created FsmBool.</returns>
         public static FsmBool AddFsmBool(this PlayMakerFSM fsm, string name, bool value)
         {
             FsmBool fb = new FsmBool(name)
@@ -533,7 +619,13 @@ namespace BluePrinceArchipelago.Utils
             fsm.FsmVariables.boolVariables = bools;
             return fb;
         }
-
+        /// <summary>
+        ///     Creates an FsmInt variable in an FSM.
+        /// </summary>
+        /// <param name="fsm">The FSM.</param>
+        /// <param name="name">The variable name of the FsmInt.</param>
+        /// <param name="value">The int value of the new variable.</param>
+        /// <returns>The newly created FsmInt.</returns>
         public static FsmInt AddFsmInt(this PlayMakerFSM fsm, string name, int value)
         {
             FsmInt fi = new FsmInt(name)
@@ -553,6 +645,13 @@ namespace BluePrinceArchipelago.Utils
 
         }
 
+        /// <summary>
+        ///     Creates an FsmGameObject variable in an FSM.
+        /// </summary>
+        /// <param name="fsm">The FSM.</param>
+        /// <param name="name">The variable name of the FsmGameObject.</param>
+        /// <param name="value">The GameObject value of the new variable.</param>
+        /// <returns>The newly created FsmGameObject.</returns>
         public static FsmGameObject AddFsmGameObject(this PlayMakerFSM fsm, string name, GameObject value)
         {
             FsmGameObject fgo = new FsmGameObject(name)
@@ -566,6 +665,13 @@ namespace BluePrinceArchipelago.Utils
             return fgo;
         }
 
+        /// <summary>
+        ///     Creates a new FsmTransition to a given state.
+        /// </summary>
+        /// <param name="state">The FsmState to transition from.</param>
+        /// <param name="fsmEvent">The FsmEvent of the given transition.</param>
+        /// <param name="toState">The FsmState to transition to.</param>
+        /// <returns>Returns the new FsmTransition that was added.</returns>
         public static FsmTransition AddTransition(this FsmState state, FsmEvent fsmEvent, FsmState toState)
         {
             FsmTransition[] transitions = new FsmTransition[state.Transitions.Length + 1];
@@ -585,26 +691,45 @@ namespace BluePrinceArchipelago.Utils
             return t;
         }
 
+        /// <inheritdoc cref="AddTransition(FsmState, FsmEvent, FsmState)"/>
+        /// <param name="eventName">The name of the transition event.</param>
         public static FsmTransition AddTransition(this FsmState state, string eventName, FsmState toState)
         {
             return state.AddTransition(FsmEvent.GetFsmEvent(eventName), toState);
         }
-
+        /// <inheritdoc cref="AddTransition(FsmState, FsmEvent, FsmState)"/>
+        /// <param name="eventName">The name of the transition event.</param>
+        /// <param name="toState">The name of the FsmState to transition to.</param>
         public static FsmTransition AddTransition(this FsmState state, string eventName, string toState)
         {
             return state.AddTransition(eventName == "FINISHED" ? FsmEvent.Finished : FsmEvent.GetFsmEvent(eventName), state.Fsm.GetState(toState));
         }
 
+        /// <summary>
+        ///     Removes all transitions to a given state from a given state.
+        /// </summary>
+        /// <param name="state">The state to find transitions from.</param>
+        /// <param name="toState">The state to remove transitions to.</param>
         public static void RemoveTransitionsTo(this FsmState state, string toState)
         {
             state.Transitions = state.Transitions.Where(t => (t.ToFsmState?.Name ?? t.ToState) != toState).ToArray();
         }
 
+        /// <summary>
+        ///     Removes all transitions to from a given state with a given eventName.
+        /// </summary>
+        /// <param name="state">The state to find transitions from.</param>
+        /// <param name="eventName">The event name of transitions to be removed.</param>
         public static void RemoveTransitionsOn(this FsmState state, string eventName)
         {
             state.Transitions = state.Transitions.Where(t => t.EventName != eventName).ToArray();
         }
 
+        /// <summary>
+        ///     Changes a given FsmTransition's toState to a given FsmState.
+        /// </summary>
+        /// <param name="transition">The FsmTransition to change.</param>
+        /// <param name="toState">The new FsmState to transition to.</param>
         public static void SetToState(this FsmTransition transition, FsmState toState)
         {
             transition.ToFsmState = toState;
@@ -613,6 +738,10 @@ namespace BluePrinceArchipelago.Utils
             transition.toState = toState.Name;
         }
 
+        /// <summary>
+        ///     Removes all transitions from a given state.
+        /// </summary>
+        /// <param name="state">The FsmState.</param>
         public static void ClearTransitions(this FsmState state)
         {
             state.Transitions = Array.Empty<FsmTransition>();
@@ -700,8 +829,9 @@ namespace BluePrinceArchipelago.Utils
             }
         }
 
+        /// TODO: Fix these functions
         /// <summary>
-        ///     Adds a method in a PlayMakerFSM.
+        ///     Adds a method in a PlayMakerFSM. CURRENTLY DOES NOT WORK
         /// </summary>
         /// <param name="fsm">The fsm</param>
         /// <param name="stateName">The name of the state in which the method is added</param>
@@ -722,9 +852,9 @@ namespace BluePrinceArchipelago.Utils
             MethodAction action = new MethodAction { Method = method };
             state.AddAction(action);
         }
-
+        /// TODO: Fix these functions
         /// <summary>
-        ///     Adds a method with a parameter in a PlayMakerFSM.
+        ///     Adds a method with a parameter in a PlayMakerFSM. CURRENTLY DOES NOT WORK.
         /// </summary>
         /// <param name="fsm">The fsm</param>
         /// <param name="stateName">The name of the state in which the method is added</param>
@@ -747,6 +877,16 @@ namespace BluePrinceArchipelago.Utils
             state.AddAction(action);
         }
 
+        /// <summary>
+        ///     Internal. Inserts a value of a given type into an array at a given index.
+        ///     Trying to insert a value out of bounds will cause a `ArgumentOutOfRangeException`.
+        /// </summary>
+        /// <typeparam name="TVal">The type of the value and Array.</typeparam>
+        /// <param name="origArray">The array to add an item to.</param>
+        /// <param name="value">The value to add.</param>
+        /// <param name="index">The index to add the value at.</param>
+        /// <returns>A new Array of the given type with the added value.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         private static TVal[] InsertItemIntoArray<TVal>(TVal[] origArray, TVal value, int index)
         {
             int origArrayCount = origArray.Length;
@@ -835,7 +975,7 @@ namespace BluePrinceArchipelago.Utils
         }
 
         /// <summary>
-        ///     Inserts a method in a PlayMakerFSM.
+        ///     Inserts a method in a PlayMakerFSM. CURRENTLY DOES NOT WORK
         ///     Trying to insert a method out of bounds will cause a `ArgumentOutOfRangeException`.
         /// </summary>
         /// <param name="fsm">The fsm</param>
@@ -874,7 +1014,7 @@ namespace BluePrinceArchipelago.Utils
         }
 
         /// <summary>
-        ///     Inserts a method with a parameter in a PlayMakerFSM.
+        ///     Inserts a method with a parameter in a PlayMakerFSM. CURRENTLY DOES NOT WORK
         ///     Trying to insert a method out of bounds will cause a `ArgumentOutOfRangeException`.
         /// </summary>
         /// <param name="fsm">The fsm</param>
@@ -914,7 +1054,7 @@ namespace BluePrinceArchipelago.Utils
         }
 
         /// <summary>
-        /// Insert a method to run before the specified FsmStateAction.
+        ///     Insert a method to run before the specified FsmStateAction. CURRENTLY DOES NOT WORK
         /// </summary>
         /// <param name="action">The action to insert before.</param>
         /// <param name="method">The method to execute.
@@ -928,7 +1068,7 @@ namespace BluePrinceArchipelago.Utils
         }
 
         /// <summary>
-        /// Insert a method to run after the specified FsmStateAction.
+        ///     Insert a method to run after the specified FsmStateAction. CURRENTLY DOES NOT WORK
         /// </summary>
         /// <param name="action">The action to insert after.</param>
         /// <param name="method">The method to execute.
@@ -942,7 +1082,7 @@ namespace BluePrinceArchipelago.Utils
         }
 
         /// <summary>
-        /// Insert an action to run before the specified FsmStateAction.
+        ///     Insert an action to run before the specified FsmStateAction. CURRENTLY DOES NOT WORK
         /// </summary>
         /// <param name="action">The action to insert before.</param>
         /// <param name="newAction">The action to add.</param>
@@ -955,7 +1095,7 @@ namespace BluePrinceArchipelago.Utils
         }
 
         /// <summary>
-        /// Insert an action to run after the specified FsmStateAction.
+        ///     Insert an action to run after the specified FsmStateAction. CURRENTLY DOES NOT WORK.
         /// </summary>
         /// <param name="action">The action to insert after.</param>
         /// <param name="newAction">The action to add.</param>
@@ -1097,6 +1237,13 @@ namespace BluePrinceArchipelago.Utils
             return true;
         }
 
+        /// <summary>
+        ///     Internal. Removes items from an array if they do not pass a given callback.
+        /// </summary>
+        /// <typeparam name="TVal">The type of the array to remove from.</typeparam>
+        /// <param name="origArray">The original array to remove items from.</param>
+        /// <param name="shouldBeRemovedCallback">The callback function to evaluate if an item should be removed.</param>
+        /// <returns>The new array with the items removed.</returns>
         private static TVal[] RemoveItemsFromArray<TVal>(TVal[] origArray, Func<TVal, bool> shouldBeRemovedCallback)
         {
             int amountOfRemoved = 0;
@@ -1224,9 +1371,6 @@ namespace BluePrinceArchipelago.Utils
         {
             state.Transitions = new Il2CppReferenceArray<FsmTransition>([]);
         }
-
-
-    
 
         /// <summary>
         ///     Removes all actions of a given type in a PlayMakerFSM.
@@ -1375,6 +1519,11 @@ namespace BluePrinceArchipelago.Utils
             }
         }
 
+        /// <summary>
+        ///     Disables the first action of a given type in a given state.
+        /// </summary>
+        /// <typeparam name="TAction">The type of FsmStateAction to disable.</typeparam>
+        /// <param name="state">The state to search.</param>
         public static void DisableFirstActionOfType<TAction>(this FsmState state) {
             for (int i = 0; i < state.ActionData.ActionNames.Count; i++)
             {
@@ -1385,6 +1534,11 @@ namespace BluePrinceArchipelago.Utils
                 }
             }
         }
+        /// <summary>
+        ///     Disables the last action of a given type in a given state.
+        /// </summary>
+        /// <typeparam name="TAction">The type of FsmStateAction to disable.</typeparam>
+        /// <param name="state">The state to search.</param>
         public static void DisableLastActionOfType<TAction>(this FsmState state) {
             int length = state.ActionData.ActionNames.Count;
             for (int i = 0; i < length; i++)
@@ -1396,6 +1550,11 @@ namespace BluePrinceArchipelago.Utils
                 }
             }
         }
+        /// <summary>
+        ///     Enables the first action of a given type in a given state.
+        /// </summary>
+        /// <typeparam name="TAction">The type of FsmStateAction to enable.</typeparam>
+        /// <param name="state">The state to search.</param>
         public static void EnableFirstActionOfType<TAction>(this FsmState state)
         {
             int i = 0;
@@ -1409,6 +1568,11 @@ namespace BluePrinceArchipelago.Utils
                 i++;
             }
         }
+        /// <summary>
+        ///     Enables the last action of a given type in a given state.
+        /// </summary>
+        /// <typeparam name="TAction">The type of FsmStateAction to enable.</typeparam>
+        /// <param name="state">The state to search.</param>
         public static void EnableLastActionOfType<TAction>(this FsmState state)
         {
             int length = state.ActionData.ActionNames.Count;
@@ -1422,6 +1586,11 @@ namespace BluePrinceArchipelago.Utils
             }
         }
 
+        /// <summary>
+        ///     Enables the all actions of a given type in a given state.
+        /// </summary>
+        /// <typeparam name="TAction">The type of FsmStateAction to enable.</typeparam>
+        /// <param name="state">The state to search.</param>
         public static void EnableActionsOfType<TAction>(this FsmState state)
         {
             int i = 0;
@@ -1434,6 +1603,12 @@ namespace BluePrinceArchipelago.Utils
                 i++;
             }
         }
+
+        /// <summary>
+        ///     Enables the action in a given state at the given index.
+        /// </summary>
+        /// <param name="state">The state to search.</param>
+        /// <param name="index">The index of the action to enable.</param>
         public static bool EnableAction(this FsmState state, int index)
         {
             if (index < 0 || index >= state.Actions.Length)
@@ -1445,6 +1620,13 @@ namespace BluePrinceArchipelago.Utils
             return true;
         }
 
+        /// <summary>
+        ///     Internal. Creates a copy of a varable of a given type.
+        /// </summary>
+        /// <typeparam name="TVar">The type of the variable array.</typeparam>
+        /// <param name="orig">The original array.</param>
+        /// <param name="name">The name of the new array</param>
+        /// <returns></returns>
         private static TVar[] MakeNewVariableArray<TVar>(TVar[] orig, string name) where TVar : NamedVariable, new()
         {
             TVar[] newArray = new TVar[orig.Length + 1];
@@ -1599,6 +1781,13 @@ namespace BluePrinceArchipelago.Utils
             return tmp[tmp.Length - 1];
         }
 
+        /// <summary>
+        ///     Internal. Finds and returns a named variable in a given variable array.
+        /// </summary>
+        /// <typeparam name="TVar">The type of the variable array.</typeparam>
+        /// <param name="orig">The original variable array.</param>
+        /// <param name="name">The name of the named variable to find.</param>
+        /// <returns>The named variable of the TVar type, or null if not found.</returns>
         private static TVar FindInVariableArray<TVar>(TVar[] orig, string name) where TVar : NamedVariable, new()
         {
             foreach (TVar item in orig)

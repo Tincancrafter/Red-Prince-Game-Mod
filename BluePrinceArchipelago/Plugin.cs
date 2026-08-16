@@ -55,7 +55,7 @@ namespace BluePrinceArchipelago {
             ModItemManager = new ModItemManager();
             UniqueItemManager = new UniqueItemManager();
             _instance = this;
-            AssetBundle = AssetBundle.LoadAssetFromAssembly(AssetExtensions.GetResourceNameFromPath("assets/apprefabs"));
+            AssetBundle = AssetExtensions.LoadAssetBundleFromAssembly(AssetExtensions.GetResourceNameFromPath("assets/apprefabs"));
             Log.LogInfo($"Plugin {PluginGUID} is loaded!");
             //Inject custom Object for Mod Handling
             ClassInjector.RegisterTypeInIl2Cpp<ModInstance>();
