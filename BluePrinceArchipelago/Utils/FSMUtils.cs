@@ -32,6 +32,12 @@ namespace BluePrinceArchipelago.Utils
             return null;
         }
 
+        /// <summary>
+        ///     Gets a PlayMakerHashTableProxy.
+        /// </summary>
+        /// <param name="go">The GameObject</param>
+        /// <param name="name">The name of the PlayMakerHashTableProxy</param>
+        /// <returns>The found PlayMakerHashTableProxy, null if it isn't found</returns>
         public static PlayMakerHashTableProxy GetHashTableProxy(this GameObject go, string name)
         {
             foreach (PlayMakerHashTableProxy hashTableProxy in go.GetComponents<PlayMakerHashTableProxy>())
@@ -59,11 +65,11 @@ namespace BluePrinceArchipelago.Utils
             return 0;
         }
         /// <summary>
-        ///     Checks if the PlayMakerArrayListProxy contains a value
+        ///     Checks if the PlayMakerArrayListProxy contains a value.
         /// </summary>
         /// <param name="arrayListProxy">The PlayMakerArrayListProxy</param>
-        /// <param name="value">The Object to add to the Array</param>
-        /// <returns>Returns if the given item is in an ArrayListProxy, false if the array can't be retrieved.</returns>
+        /// <param name="value">The object to look for in the list.</param>
+        /// <returns>Returns if the given item is in an ArrayListProxy, false if the array can't be retrieved or the value doesn't exist in the list.</returns>
         public static bool Contains(this PlayMakerArrayListProxy arrayListProxy, Il2CppSystem.Object value)
         {
             Il2CppSystem.Collections.ArrayList arrayList = arrayListProxy.arrayList;
@@ -73,6 +79,12 @@ namespace BluePrinceArchipelago.Utils
             }
             return false;
         }
+        /// <summary>
+        ///     Checks if the PlayMakerArrayListProxy contains a value with that name.
+        /// </summary>
+        /// <param name="arrayListProxy">The PlayMakerArrayListProxy</param>
+        /// <param name="name">The name of the object to look for in the array.</param>
+        /// <returns>Returns if the given item is in an ArrayListProxy, false if the array can't be retrieved or no object with that name exists in the array.</returns>
         public static bool Contains(this PlayMakerArrayListProxy arrayListProxy, string name) {
             for (int i = 0; i < arrayListProxy.arrayList.Count; i++)
             {
@@ -84,7 +96,11 @@ namespace BluePrinceArchipelago.Utils
             }
             return false;
         }
-
+        /// <summary>
+        ///     Checks if the PlayMakerArrayListProxy contains a value with that name and removes it if it exists.
+        /// </summary>
+        /// <param name="arrayListProxy">The PlayMakerArrayListProxy</param>
+        /// <param name="name">The name of the object to remove from the array.</param>
         public static void RemoveIfExists(this PlayMakerArrayListProxy arrayListProxy, string name) {
             for (int i = 0; i < arrayListProxy.arrayList.Count; i++) { 
                 GameObject item = arrayListProxy?.arrayList[i]?.TryCast<GameObject>();
@@ -93,6 +109,11 @@ namespace BluePrinceArchipelago.Utils
                 }
             }
         }
+        /// <summary>
+        ///     Checks if the PlayMakerArrayListProxy contains a value, then adds it if the value couldn't be found.
+        /// </summary>
+        /// <param name="arrayListProxy">The PlayMakerArrayListProxy</param>
+        /// <param name="value">The game object to add to the list if it doesn't already exist in the list.</param>
         public static void AddIfUnique(this PlayMakerArrayListProxy arrayListProxy, GameObject value)
         {
             for (int i = 0; i < arrayListProxy.arrayList.Count; i++)
@@ -118,6 +139,11 @@ namespace BluePrinceArchipelago.Utils
                 arrayListProxy.Remove(arrayList[index], arrayList[index].GetType().ToString()); //Use the in built remove function to make sure nothing in the PlayMakerArrayListProxy Breaks.
             }
         }
+        /// <summary>
+        ///     Attempts to safetly remove a value with a given name from the array list. 
+        /// </summary>
+        /// <param name="list">The PlayMakerArrayListProxy</param>
+        /// <param name="objName">The name of the object to attempt to remove.</param>
         public static bool SafeRemove(this PlayMakerArrayListProxy list, string objName) {
             for (int i = 0; i < list.arrayList.Count; i++)
             {
@@ -182,6 +208,13 @@ namespace BluePrinceArchipelago.Utils
             }
             return null;
         }
+        /// <summary>
+        ///     Internal. Gets an item of TVal type from an array.
+        /// </summary>
+        /// <typeparam name="TVal">The type of the item to get from the array.</typeparam>
+        /// <param name="origArray">The orignal array to retreive an item from</param>
+        /// <param name="isItemCheck">The function to confirm if the item is actually an item.</param>
+        /// <returns>Returns the first instance of an item that passes the item check and is of TVal Type.</returns>
         private static TVal GetItemFromArray<TVal>(TVal[] origArray, Func<TVal, bool> isItemCheck) where TVal : class
         {
             foreach (TVal item in origArray)
@@ -193,7 +226,13 @@ namespace BluePrinceArchipelago.Utils
             }
             return null;
         }
-
+        /// <summary>
+        ///     Internal. Gets all items of TVal type from an array.
+        /// </summary>
+        /// <typeparam name="TVal">The type of the item to get from the array.</typeparam>
+        /// <param name="origArray">The orignal array to retreive an item from</param>
+        /// <param name="isItemCheck">The function to confirm if the item is actually an item.</param>
+        /// <returns>Returns an array of TVal items that pass the item check.</returns>
         private static TVal[] GetItemsFromArray<TVal>(TVal[] origArray, Func<TVal, bool> isItemCheck) where TVal : class
         {
             int foundItems = 0;
@@ -224,9 +263,14 @@ namespace BluePrinceArchipelago.Utils
             }
             return retArray;
         }
+        /// <inheritdoc cref="GetTransition(PlayMakerFSM, string, string)"/>
+        /// <param name="stateName">The name of the state</param>
+        /// <param name="eventName">The name of the event</param>
         public static FsmTransition GetTransition(this PlayMakerFSM fsm, string stateName, string eventName) => fsm.GetState(stateName)!.GetTransition(eventName);
 
         /// <inheritdoc cref="GetTransition(PlayMakerFSM, string, string)"/>
+        /// <param name="stateName">The name of the state</param>
+        /// <param name="eventName">The name of the event</param>
         public static FsmTransition GetTransition(this Fsm fsm, string stateName, string eventName) => fsm.GetState(stateName)!.GetTransition(eventName);
 
         /// <inheritdoc cref="GetTransition(PlayMakerFSM, string, string)"/>
