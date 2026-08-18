@@ -12,7 +12,9 @@ using UnityEngine;
 
 namespace BluePrinceArchipelago.Archipelago;
 
-// shamelessly stolen from oc2-modding https://github.com/toasterparty/oc2-modding/blob/main/OC2Modding/GameLog.cs with modifications for Blue Prince.
+/// <summary>
+///     Shamelessly stolen from oc2-modding https://github.com/toasterparty/oc2-modding/blob/main/OC2Modding/GameLog.cs with modifications for Blue Prince.
+/// </summary>
 public static class ArchipelagoConsole
 {
     public static bool Hidden = true;
@@ -41,11 +43,20 @@ public static class ArchipelagoConsole
     private static int PreviousCommandPointer = -1;
     private static List<string> TextFieldNames = ["URI", "SlotName", "Password", "CommandText"];
 
+    /// <summary>
+    ///     Unity Monobehaviour Awake()
+    /// </summary>
     public static void Awake()
     {
         UpdateWindow();
     }
 
+    /// <summary>
+    ///     Logs a Message in the in Game Console.
+    /// </summary>
+    /// <param name="message">The Message to log.</param>
+    /// <param name="logTag">The Tag of the message. Defaults to "ArchipelagoConsole"</param>
+    /// <param name="isServerMessage">Whether the message is from the server.</param>
     public static void LogMessage(string message, string logTag = "ArchipelagoConsole", bool isServerMessage = false)
     {
         if (message.IsNullOrWhiteSpace()) return;
@@ -73,6 +84,11 @@ public static class ArchipelagoConsole
         }
     }
 
+    /// <summary>
+    ///     If the message should be logged to the bepinex console.
+    /// </summary>
+    /// <param name="message">The string message.</param>
+    /// <returns>Returns true if the message should be logged. False Otherwise.</returns>
     private static bool IsRelevantMessage(string message)
     {
         if (!ShowOnlyRelevantMessages) return true;
@@ -80,6 +96,9 @@ public static class ArchipelagoConsole
         return false;
     }
 
+    /// <summary>
+    ///     To be run on a Unity OnGUI update.
+    /// </summary>
     public static void OnGUI()
     {
         Event e = Event.current;
@@ -205,6 +224,11 @@ public static class ArchipelagoConsole
         }
         ToggleKeyboardInput(TextFieldNames.Contains(GUI.GetNameOfFocusedControl()));
     }
+
+    /// <summary>
+    ///     Whether to allow keyboard input to move the player charcter.
+    /// </summary>
+    /// <param name="focused">Whether the textfields are currently focused.</param>
     private static void ToggleKeyboardInput(bool focused) {
         var keyboard = Rewired.ReInput.controllers.Keyboard;
         
@@ -221,6 +245,9 @@ public static class ArchipelagoConsole
          }
     }
 
+    /// <summary>
+    ///     Performs the redraw and update of the console window UI.
+    /// </summary>
     public static void UpdateWindow()
     {
         scrollText = "";
@@ -339,18 +366,38 @@ public static class ArchipelagoConsole
         SendCommandButton = new Rect(xPos, yPos, width, height);
     }
 }
+
+/// <summary>
+///     A Rudimentary manager for in game console commands.
+/// </summary>
 public static class CommandManager
 {
     private static Dictionary<string, Command> _LocalCommands = new();
     private static Dictionary<string, Command> _ServerCommands = new();
+
+    /// <summary>
+    ///     Registers a local command.
+    /// </summary>
+    /// <param name="commandName">The name of the command.</param>
+    /// <param name="command">The command Object to register.</param>
     public static void AddLocalCommand(string commandName, Command command)
     {
         _LocalCommands[commandName.Trim().ToLower()] = command;
     }
+    /// <summary>
+    ///     Registers a server command.Currently not in use.
+    /// </summary>
+    /// <param name="commandName">The name of the command.</param>
+    /// <param name="command">The command Object to register.</param>
     public static void AddServerCommand(string commandName, Command command)
     {
         _ServerCommands[commandName] = command;
     }
+
+    /// <summary>
+    ///     Evaluates if the given message is a command and runs the relevant command.
+    /// </summary>
+    /// <param name="command">The message to evaluate.</param>
     public static void RunLocalCommand(string command)
     {
         ParsedCommand parsedCommand = ParseCommand(command.Substring(1)); //Parse command ignoring the first character which is the command indicator.
@@ -363,6 +410,7 @@ public static class CommandManager
         }
         ArchipelagoConsole.LogMessage($"{commandName} is not a recognized command.");
     }
+    /// <inheritdoc cref="RunLocalCommand(string)"/>
     public static void RunServerCommand(string command)
     {
         ParsedCommand parsedCommand = ParseCommand(command);
@@ -375,6 +423,10 @@ public static class CommandManager
         }
         ArchipelagoConsole.LogMessage($"{commandName} is not a recognized command.");
     }
+
+    /// <summary>
+    ///     Runs the help text command and outputs it to the console.
+    /// </summary>
     public static void PrintHelpText()
     {
         string[] Keys = _LocalCommands.Keys.ToArray();
@@ -388,6 +440,10 @@ public static class CommandManager
             }
         }
     }
+
+    /// <summary>
+    ///     Initializes all of the locally defined commands.
+    /// </summary>
     public static void initializeLocalCommands()
     {
         _LocalCommands["room"] = new RoomCommand("Room");
@@ -403,6 +459,12 @@ public static class CommandManager
         _LocalCommands["collect"] = new CollectCommand("Collect"); // Collect location from the Archipelago item pool, for testing purposes.
         _LocalCommands["recordevent"] = new RecordEventCommand("RecordEvent"); // records an event to set some of the vanilla states
     }
+
+    /// <summary>
+    ///     Parses and breaks down a command into the command and it's arguements.
+    /// </summary>
+    /// <param name="command">The Command to Parse.</param>
+    /// <returns>A ParsedCommand with the command and it's arguements.</returns>
     private static ParsedCommand ParseCommand(string command)
     {
         if (command.Length > 1)
@@ -453,6 +515,11 @@ public static class CommandManager
         return new ParsedCommand("", [""]);
     }
 }
+
+/// <summary>
+///     The Command Framework.
+/// </summary>
+/// <param name="name">The name of the command.</param>
 public abstract class Command(string name)
 {
     public string Name = name;
@@ -466,8 +533,17 @@ public abstract class Command(string name)
         get;
     }
 
+    /// <summary>
+    ///     The core functionality of the command.
+    /// </summary>
+    /// <param name="Args">The arguements for running the command.</param>
     public abstract void Run(List<string> Args);
 }
+
+/// <summary>
+///     A command for manipulating the room pool.
+/// </summary>
+/// <param name="name">The name of the command.</param>
 public class RoomCommand(string name) : Command(name)
 {
     private readonly string _Description = "Manages the room pool - add, remove, list, or clear rooms";
@@ -539,6 +615,10 @@ public class RoomCommand(string name) : Command(name)
         }
     }
 
+    /// <summary>
+    ///     Prints out the mod details and counts of the current room pool.
+    /// </summary>
+    /// <param name="unlockedOnly">Whether to display only rooms that have been unlocked.</param>
     private void ListRooms(bool unlockedOnly)
     {
         var rooms = Plugin.ModRoomManager.Rooms;
@@ -569,6 +649,10 @@ public class RoomCommand(string name) : Command(name)
         ArchipelagoConsole.LogMessage($"Summary: {unlockedCount} unlocked, {lockedCount} locked, {vanillaCount} vanilla mode");
     }
 
+    /// <summary>
+    ///     Adds a Room to the room pool.
+    /// </summary>
+    /// <param name="roomName">The name of the room to add.</param>
     private void AddRoomToPool(string roomName)
     {
         ModRoom room = Plugin.ModRoomManager.GetRoomByName(roomName.ToUpper());
@@ -584,6 +668,10 @@ public class RoomCommand(string name) : Command(name)
         ArchipelagoConsole.LogMessage($"Added '{room.Name}' to the pool. Pool count: {room.RoomPoolCount}");
     }
 
+    /// <summary>
+    ///     Removes a room from the current room pool.
+    /// </summary>
+    /// <param name="roomName">The name of the room to remove.</param>
     private void RemoveRoomFromPool(string roomName)
     {
         ModRoom room = Plugin.ModRoomManager.GetRoomByName(roomName.ToUpper());
@@ -604,6 +692,9 @@ public class RoomCommand(string name) : Command(name)
         ArchipelagoConsole.LogMessage($"Removed '{room.Name}' from the pool.");
     }
 
+    /// <summary>
+    ///     Empties the current room pool.
+    /// </summary>
     private void ClearPool()
     {
         Plugin.ModRoomManager.EmptyDraftPool();
@@ -611,6 +702,9 @@ public class RoomCommand(string name) : Command(name)
         ArchipelagoConsole.LogMessage("Cleared all non-vanilla rooms from the pool.");
     }
 
+    /// <summary>
+    ///     Clears all the rooms for archipelago then rebuilds the room pool based on received items and settings.
+    /// </summary>
     private void ClearAllForArchipelago()
     {
         Plugin.ModRoomManager.ClearAllRoomsForArchipelago();
@@ -621,6 +715,11 @@ public class RoomCommand(string name) : Command(name)
         ArchipelagoConsole.LogMessage("Cleared ALL rooms and disabled vanilla mode for Archipelago.");
     }
 }
+
+/// <summary>
+///     Adjusts various resource totals.
+/// </summary>
+/// <param name="name"></param>
 public class AdjustCommand(string name) : Command(name)
 {
     private string _Description = "Allows you to Adjust the ammount of certain run resources";
@@ -802,6 +901,10 @@ public class AdjustCommand(string name) : Command(name)
         ArchipelagoConsole.LogMessage($"Error Running Command {Name}: no parameters provided.");
     }
 }
+/// <summary>
+///     A command for manipulating items in the inventory.
+/// </summary>
+/// <param name="name">The name of the command.</param>
 public class ItemCommand(string name) : Command(name)
 {
     private string _Description = "Adds or Removes Items from the inventory.";
@@ -950,6 +1053,11 @@ public class ItemCommand(string name) : Command(name)
             ArchipelagoConsole.LogMessage($"Error Running Command {Name}: no parameters provided.");
     }
 }
+
+/// <summary>
+///     A command for displaying all of the commands and how to use them.
+/// </summary>
+/// <param name="name">The name of the command.</param>
 public class HelpCommand(string name) : Command(name)
 {
     private string _Description = "Displays all Local Commands";
@@ -967,6 +1075,11 @@ public class HelpCommand(string name) : Command(name)
         CommandManager.PrintHelpText();
     }
 }
+
+/// <summary>
+///     A command for forcing a room to appear in drafting when next logically possible.
+/// </summary>
+/// <param name="name">The name of the command.</param>
 public class ForceCommand(string name) : Command(name)
 {
     private readonly string _Description = "Forces a draft of the room when next possible";
@@ -990,6 +1103,10 @@ public class ForceCommand(string name) : Command(name)
     }
 }
 
+/// <summary>
+///     A command for resyncing the room pool with the received item pool.
+/// </summary>
+/// <param name="name">The name of the command.</param>
 public class SyncCommand(string name) : Command(name)
 {
     private readonly string _Description = "Syncs room pool with Archipelago received items";
@@ -1026,7 +1143,9 @@ public class SyncCommand(string name) : Command(name)
             ArchipelagoConsole.LogMessage($"Error: Unknown subcommand '{subcommand}'.\n{_Syntax}");
         }
     }
-
+    /// <summary>
+    ///     A function to rebuild the roompool to match the received rooms from archipelago.
+    /// </summary>
     private void SyncRoomsFromArchipelago()
     {
         if (!ArchipelagoClient.Authenticated)
@@ -1084,6 +1203,9 @@ public class SyncCommand(string name) : Command(name)
         ArchipelagoConsole.LogMessage("All rooms set to Archipelago mode (vanilla handling disabled).");
     }
 
+    /// <summary>
+    ///     Displays the current information on what data has been received from archipelago.
+    /// </summary>
     private void ShowSyncStatus()
     {
         if (!ArchipelagoClient.Authenticated)
@@ -1125,6 +1247,9 @@ public class SyncCommand(string name) : Command(name)
     }
 }
 
+/// <summary>
+///     A data structure for containing the parsed command name and it's arguements.
+/// </summary>
 public class ParsedCommand
 {
     public string Command;
@@ -1136,6 +1261,10 @@ public class ParsedCommand
     }
 }
 
+/// <summary>
+///     A command for listing items received from archipelago.
+/// </summary>
+/// <param name="name">The name of the command.</param>
 public class ReceivedCommand(string name) : Command(name)
 {
     private readonly string _Description = "Lists items received from Archipelago";
@@ -1184,6 +1313,10 @@ public class ReceivedCommand(string name) : Command(name)
         }
     }
 
+    /// <summary>
+    ///     Outputs the received items to the console.
+    /// </summary>
+    /// <param name="receivedItems">A list of items received from Archipelago.</param>
     private void ListReceivedRooms(List<string> receivedItems)
     {
         var rooms = receivedItems.Where(i => Plugin.ModRoomManager.GetRoomByName(i.ToUpper()) != null).ToList();
@@ -1196,6 +1329,10 @@ public class ReceivedCommand(string name) : Command(name)
         }
     }
 
+    /// <summary>
+    ///     A list of items received from archipelago excluding rooms.
+    /// </summary>
+    /// <param name="receivedItems"></param>
     private void ListReceivedNonRooms(List<string> receivedItems)
     {
         var nonRooms = receivedItems.Where(i => Plugin.ModRoomManager.GetRoomByName(i.ToUpper()) == null).ToList();
@@ -1207,6 +1344,10 @@ public class ReceivedCommand(string name) : Command(name)
         }
     }
 
+    /// <summary>
+    ///     Lists the counts of certain types of items.
+    /// </summary>
+    /// <param name="receivedItems">The list of received items.</param>
     private void ShowCounts(List<string> receivedItems)
     {
         int roomCount = 0;
@@ -1237,6 +1378,10 @@ public class ReceivedCommand(string name) : Command(name)
         ArchipelagoConsole.LogMessage($"  Total:     {receivedItems.Count}");
     }
 
+    /// <summary>
+    ///     Lists the data of all received items.
+    /// </summary>
+    /// <param name="receivedItems">The list of received items.</param>
     private void ListAll(List<string> receivedItems)
     {
         ArchipelagoConsole.LogMessage($"=== All Received Items ({receivedItems.Count}) ===");
@@ -1252,7 +1397,7 @@ public class ReceivedCommand(string name) : Command(name)
 
 
 /// <summary>
-/// Debug command to investigate game systems like FSMs, draft pools, and the Entrance Hall.
+///     Debug command to investigate game systems like FSMs, draft pools, and the Entrance Hall.
 /// </summary>
 public class DebugCommand(string name) : Command(name)
 {
@@ -1309,6 +1454,9 @@ public class DebugCommand(string name) : Command(name)
         }
     }
 
+    /// <summary>
+    ///     A function for outputting data about the Entrance Hall to the console.
+    /// </summary>
     private void InvestigateEntranceHall()
     {
         ArchipelagoConsole.LogMessage("=== Investigating Entrance Hall Draft System ===");
@@ -1404,6 +1552,9 @@ public class DebugCommand(string name) : Command(name)
         }
     }
 
+    /// <summary>
+    ///     Outputs information about picker arrays to the console.
+    /// </summary>
     private void ListPickerArrays()
     {
         ArchipelagoConsole.LogMessage("=== All Picker Arrays ===");
@@ -1440,6 +1591,9 @@ public class DebugCommand(string name) : Command(name)
         }
     }
 
+    /// <summary>
+    ///     Outputs information about The Grid to the console.
+    /// </summary>
     private void ShowGridInfo()
     {
         ArchipelagoConsole.LogMessage("=== Grid/Draft Info ===");
@@ -1468,6 +1622,10 @@ public class DebugCommand(string name) : Command(name)
         }
     }
 
+    /// <summary>
+    ///     Outputs details about a particular FSM.
+    /// </summary>
+    /// <param name="path">The string path to the game object containing the FSM to inspect.</param>
     private void InspectFSM(string path)
     {
         GameObject obj = GameObject.Find(path);
@@ -1506,8 +1664,8 @@ public class DebugCommand(string name) : Command(name)
     }
 
     /// <summary>
-    /// Lists all rooms in a specific picker array and checks their POOL REMOVAL status.
-    /// Usage: /debug pool "FRONT - Tier 1"
+    ///     Lists all rooms in a specific picker array and checks their POOL REMOVAL status.
+    ///     Usage: /debug pool "FRONT - Tier 1"
     /// </summary>
     public void InspectPoolArray(string arrayName)
     {
@@ -1558,7 +1716,7 @@ public class DebugCommand(string name) : Command(name)
     }
 
     /// <summary>
-    /// Check POOL REMOVAL status for all room engines.
+    ///     Check POOL REMOVAL status for all room engines.
     /// </summary>
     public void CheckAllPoolRemoval()
     {
@@ -1608,6 +1766,10 @@ public class DebugCommand(string name) : Command(name)
     }
 }
 
+/// <summary>
+///     A command for collecting a location from the archipelago item pool (for testing purposes). 
+/// </summary>
+/// <param name="name"></param>
 public class CollectCommand(string name) : Command(name)
 {
     public override string Description => "Collects a location from the Archipelago item pool (for testing purposes).";
@@ -1636,6 +1798,10 @@ public class CollectCommand(string name) : Command(name)
     }
 }
 
+/// <summary>
+///     A command for reseting the cached and stored data about the current run.
+/// </summary>
+/// <param name="name">The name of the Command.</param>
 public class ResetData(string name) : Command(name)
 {
     public override string Description => "Resets the stored data so a new run can be properly started.";
@@ -1649,6 +1815,10 @@ public class ResetData(string name) : Command(name)
     }
 }
 
+/// <summary>
+///     A Command for simulating an in game event for testing permanent unlocks.
+/// </summary>
+/// <param name="name">The name of the Command.</param>
 public class RecordEventCommand(string name) : Command(name)
 {
     public override string Description => "Records an event to set some of the vanilla states (for testing purposes).";
