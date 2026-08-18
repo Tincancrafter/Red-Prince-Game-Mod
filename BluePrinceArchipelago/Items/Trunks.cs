@@ -3,7 +3,7 @@ using BluePrinceArchipelago.Utils;
 using System;
 using System.Collections.Generic;
 
-namespace BluePrinceArchipelago.Core
+namespace BluePrinceArchipelago.Items
 {
     public class TrunkManager
     {

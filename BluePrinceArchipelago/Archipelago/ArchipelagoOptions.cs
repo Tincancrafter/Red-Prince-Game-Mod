@@ -273,6 +273,13 @@ public static class ArchipelagoOptions
     // Helper methods for parsing slot data values
     // ============================================================
 
+    /// <summary>
+    ///     Converts a given entry into a boolean value.
+    /// </summary>
+    /// <param name="data">The dictionary of the received server data.</param>
+    /// <param name="key">The key of the entry to convert.</param>
+    /// <param name="defaultValue">What value it should default to if the conversion fails.</param>
+    /// <returns>A boolean.</returns>
     private static bool GetBool(Dictionary<string, object> data, string key, bool defaultValue)
     {
         if (data.TryGetValue(key, out var value))
@@ -286,6 +293,8 @@ public static class ArchipelagoOptions
         return defaultValue;
     }
 
+    /// <inheritdoc cref="GetBool(Dictionary{string, object}, string, bool)"/>
+    /// <returns>A integer.</returns>
     private static int GetInt(Dictionary<string, object> data, string key, int defaultValue)
     {
         if (data.TryGetValue(key, out var value))
@@ -298,6 +307,8 @@ public static class ArchipelagoOptions
         return defaultValue;
     }
 
+    /// <inheritdoc cref="GetBool(Dictionary{string, object}, string, bool)"/>
+    /// <returns>A string.</returns>
     private static string GetString(Dictionary<string, object> data, string key, string defaultValue)
     {
         if (data.TryGetValue(key, out var value))
@@ -308,7 +319,14 @@ public static class ArchipelagoOptions
         }
         return defaultValue;
     }
-    // Left variable for if in the future we need additional Dictionary types.
+    /// <summary>
+    ///     A helper function for handling subdictionaries.
+    /// </summary>
+    /// <typeparam name="TKey">The type of the key</typeparam>
+    /// <typeparam name="TValue">The type of the value</typeparam>
+    /// <param name="data">The data of the dictionary.</param>
+    /// <param name="key">The key of the dictionary.</param>
+    /// <returns></returns>
     private static Dictionary<TKey, TValue> GetDictionary<TKey, TValue>(Dictionary<string, object> data, string key) {
         if (data.TryGetValue(key, out var value))
         {

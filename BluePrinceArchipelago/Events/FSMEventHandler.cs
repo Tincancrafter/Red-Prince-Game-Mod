@@ -6,6 +6,9 @@ using System.Collections.Generic;
 
 namespace BluePrinceArchipelago.Events
 {
+    /// <summary>
+    ///     An EventHandler that allows the mod to track custom made events sent via an FSM.
+    /// </summary>
     public static class FSMEventHandler
     {
         public static Dictionary<string, RegisteredFSMEvent> RegisteredEvents = new()
@@ -17,13 +20,27 @@ namespace BluePrinceArchipelago.Events
             { "Outer Draft Start", new OuterDraftStart() },
             { "Satellite Raised", new SatelliteRaised() },
         };
-        public static RegisteredFSMEvent AddFSMEvent(string name, UniqueItem item) {
+
+        /// <summary>
+        ///     Adds an FSM event related to a Unique Item pickup.
+        /// </summary>
+        /// <param name="name">The name of the event.</param>
+        /// <param name="item">The item of the event.</param>
+        /// <returns></returns>
+        public static RegisteredFSMEvent AddItemFSMEvent(string name, UniqueItem item) {
             RegisteredFSMEvent Event  = new ItemPickup(name, item);
             RegisteredEvents[name] = Event;
 
             Event.OnRegister();
             return Event;
         }
+
+        /// <summary>
+        ///     Adds an FSM event related to a Unique Item Purchase.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public static RegisteredFSMEvent AddBuyFSMEvent(string name, UniqueItem item) {
             RegisteredFSMEvent Event = new ItemBought(name, item);
             RegisteredEvents[name] = Event;
@@ -31,6 +48,13 @@ namespace BluePrinceArchipelago.Events
             Event.OnRegister();
             return Event;
         }
+
+        /// <summary>
+        ///     Adds an FSM event related to a Unique Item being dug up.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public static RegisteredFSMEvent AddDigFSMEvent(string name, UniqueItem item) {
             RegisteredFSMEvent Event = new ItemDugUp(name, item);
             RegisteredEvents[name] = Event;
@@ -39,23 +63,42 @@ namespace BluePrinceArchipelago.Events
             return Event;
         }
 
+        /// <summary>
+        ///     Registers all events and triggers any OnRegister code.
+        /// </summary>
         public static void RegisterEvents() {
             foreach (var REvent in RegisteredEvents){
                 REvent.Value.OnRegister();
             }
         }
     }
+
+    /// <summary>
+    ///     A template for a registered event.
+    /// </summary>
     public abstract class RegisteredFSMEvent {
 
         public string Name { get; set; }
         public SendEvent Event {  get; set; }
+
+        /// <summary>
+        ///     The code for when an event occurs.
+        /// </summary>
         public abstract void OnTrigger();
 
+
+        /// <summary>
+        ///     The code for when an event is registered.
+        /// </summary>
         public abstract void OnRegister();
         public RegisteredFSMEvent() {
             
         }
     }
+
+    /// <summary>
+    ///     A unlock event for the Apple Orchard.
+    /// </summary>
     public class AppleOrchardUnlock : RegisteredFSMEvent {
 
         public new string Name { get; set; } = "Apple Orchard Unlock";
@@ -90,6 +133,10 @@ namespace BluePrinceArchipelago.Events
             Unlocks.AppleOrchard.FoundLocation();
         }
     }
+
+    /// <summary>
+    ///     An unlock event for the Gemstone Caverns.
+    /// </summary>
     public class GemstoneCavernsUnlock : RegisteredFSMEvent
     {
 
@@ -126,6 +173,9 @@ namespace BluePrinceArchipelago.Events
         }
     }
 
+    /// <summary>
+    ///     An unlock event for the WestGatePath.
+    /// </summary>
     public class WestGatePathUnlock : RegisteredFSMEvent
     {
 
@@ -161,6 +211,10 @@ namespace BluePrinceArchipelago.Events
             Unlocks.WestGatePath.FoundLocation();
         }
     }
+
+    /// <summary>
+    ///     An Unlock event for the BlackBridgeGrotto.
+    /// </summary>
     public class BlackBridgeGrotto : RegisteredFSMEvent
     {
 
@@ -196,6 +250,10 @@ namespace BluePrinceArchipelago.Events
             Unlocks.BlackBridgeGrotto.FoundLocation();
         }
     }
+
+    /// <summary>
+    ///     An Unlock event for when the Satelite is raised.
+    /// </summary>
     public class SatelliteRaised : RegisteredFSMEvent
     {
 
@@ -232,6 +290,9 @@ namespace BluePrinceArchipelago.Events
         }
     }
 
+    /// <summary>
+    ///     An event for when the OuterDraft starts.
+    /// </summary>
     public class OuterDraftStart : RegisteredFSMEvent
     {
         public new string Name { get; set; } = "Outer Draft Start";
@@ -265,6 +326,12 @@ namespace BluePrinceArchipelago.Events
             ModInstance.OnDraftInitialize();
         }
     }
+
+    /// <summary>
+    ///     An event for when a Unique Item is picked up.
+    /// </summary>
+    /// <param name="name">The name of the event.</param>
+    /// <param name="item">The item that was picked up.</param>
     public class ItemPickup(string name, UniqueItem item) : RegisteredFSMEvent
     {
         public new string Name { get; set; } = name;
@@ -385,6 +452,12 @@ namespace BluePrinceArchipelago.Events
             }
         }
     }
+
+    /// <summary>
+    ///     An event for when a Unique Item is Dug up.
+    /// </summary>
+    /// <param name="name">The name of the event.</param>
+    /// <param name="item">The Unique Item that was dug up.</param>
     public class ItemDugUp(string name, UniqueItem item) : RegisteredFSMEvent
     {
         public new string Name { get; set; } = name;
@@ -431,6 +504,10 @@ namespace BluePrinceArchipelago.Events
         }
     }
 
+    /// <summary>
+    ///     On the allowance token being picked up.
+    /// </summary>
+    /// <param name="name">The name of the event.</param>
     public class AllowanceEnvelopePickedUp(string name) : RegisteredFSMEvent
     {
         public new string Name { get; set; } = name;
@@ -465,6 +542,11 @@ namespace BluePrinceArchipelago.Events
         }
     }
 
+    /// <summary>
+    ///     An event for when a Unique Item is bought.
+    /// </summary>
+    /// <param name="name">The name of the event.</param>
+    /// <param name="item">The Unique Item that was bought.</param>
     public class ItemBought(string name, UniqueItem item) : RegisteredFSMEvent {
         public new string Name { get; set; } = name;
 
