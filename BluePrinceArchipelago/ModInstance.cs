@@ -610,9 +610,8 @@ namespace BluePrinceArchipelago
         /// </summary>
         public static void OnDayEnd() {
             IsInRun = false;
-            var fsm = GameObject.Find("UI OVERLAY CAM")?.transform?.Find("END OF DAYS CHECKS")?.gameObject?.GetFsm("FSM");
             State.UpdateItems(ArchipelagoClient.ServerData.ReceivedItems); // Update Items once a day so it can automatically add any items that should have been added by the crash.
-            Plugin.ArchipelagoClient?.DeathLinkHandler?.SendEndOfDayDeathLink(fsm);
+            Plugin.ArchipelagoClient?.DeathLinkHandler?.SendEndOfDayDeathLink();
             Plugin.UniqueItemManager.EndOfDay();
         }
 

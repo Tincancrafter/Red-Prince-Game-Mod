@@ -11,6 +11,9 @@ using TMPro;
 
 namespace BluePrinceArchipelago.Archipelago;
 
+/// <summary>
+///     The handler for Deathlinks and related settings.
+/// </summary>
 public class DeathLinkHandler
 {
     public static bool _deathLinkEnabled = true;
@@ -31,7 +34,7 @@ public class DeathLinkHandler
     public static int BlockedDeathLinks = 0;
 
     /// <summary>
-    /// instantiates our death link handler, sets up the hook for receiving death links, and enables death link if needed
+    ///     Instantiates our death link handler, sets up the hook for receiving death links, and enables death link if needed
     /// </summary>
     /// <param name="deathLinkService">The new DeathLinkService that our handler will use to send and
     /// receive death links</param>
@@ -55,7 +58,7 @@ public class DeathLinkHandler
     }
 
     /// <summary>
-    /// enables/disables death link
+    ///     Enables/Disables deathlink
     /// </summary>
     public void ToggleDeathLink()
     {
@@ -74,7 +77,7 @@ public class DeathLinkHandler
     }
 
     /// <summary>
-    /// what happens when we receive a deathLink
+    ///     What happens when we receive a deathLink
     /// </summary>
     /// <param name="deathLink">Received Death Link object to handle</param>
     private void DeathLinkReceived(DeathLink deathLink)
@@ -89,8 +92,8 @@ public class DeathLinkHandler
     }
 
     /// <summary>
-    /// can be called when in a valid state to kill the player, dequeueing and immediately killing the player with a
-    /// message if we have a death link in the queue
+    ///     Can be called when in a valid state to kill the player, dequeueing and immediately killing the player with a
+    ///     message if we have a death link in the queue
     /// </summary>
     public void KillPlayer()
     {
@@ -124,6 +127,10 @@ public class DeathLinkHandler
         }
     }
 
+    /// <summary>
+    ///     Forcibly kills the player regaurdless of all other settings.
+    /// </summary>
+    /// <param name="cause">The cause of the player death.</param>
     public static void ForceKillPlayer(string cause)
     {
         try
@@ -138,11 +145,20 @@ public class DeathLinkHandler
 
     private static int _localDeathsInProgress = 0;
 
+    /// <summary>
+    ///     Prevents entering room46 for the first time from killing the player since this automatically ends the current day.
+    /// </summary>
     public static void OnRoom46FirstEntered()
     {
         _localDeathsInProgress += 1;
     }
 
+    /// <summary>
+    ///     An enumerator for processing a received deathlink.
+    /// </summary>
+    /// <param name="cause">The cause of the death.</param>
+    /// <param name="deathLink">The received deathlink. Defaults to null.</param>
+    /// <returns></returns>
     private static IEnumerator KillPlayer(string cause, DeathLink deathLink = null)
     {
         yield return null;
@@ -168,10 +184,10 @@ public class DeathLinkHandler
     }
 
     /// <summary>
-    /// returns message for the player to see when a death link is received without a cause
+    ///     Returns message for the player to see when a death link is received without a cause
     /// </summary>
     /// <param name="deathLink">death link object to get relevant info from</param>
-    /// <returns></returns>
+    /// <returns>The deathlink cause as a string.</returns>
     private string GetDeathLinkCause(DeathLink deathLink)
     {
         return $"Received death from {deathLink.Source}";
@@ -179,10 +195,16 @@ public class DeathLinkHandler
 
     private bool _bedroom = false;
     private static readonly string[] _bedroomStrings = ["adyship", "aster", "uarters", "unk", "edroom", "quarium", "oudoir", "ormitory", "ovel", "aid", "ursery", "ampsite"];
+    
+    /// <summary>
+    ///     Attempts to send a death link from running out of steps.
+    /// </summary>
     public void SendStepsDeathLink()
     {
+        // If the deathlink is not based on steps, prevent it.
         if (ArchipelagoOptions.DeathLinkType != DeathLinkType.option_steps) return;
 
+        // if there is already a death link in progress, prevent it.
         if (_localDeathsInProgress > 0)
         {
             Logging.Log($"Steps deathlink prevented due to local death in progress. {_localDeathsInProgress} local deaths in progress.", "DeathLink");
@@ -190,6 +212,7 @@ public class DeathLinkHandler
             return;
         }
 
+        // if death link is not enabled, prevent it.
         if (!deathLinkEnabled) return;
 
         string deathLinkMsg = $"{slotName} ran out of steps";
@@ -197,7 +220,10 @@ public class DeathLinkHandler
         SendDeathLink(deathLinkMsg);
     }
 
-    public void SendEndOfDayDeathLink(PlayMakerFSM fsm)
+    /// <summary>
+    ///     Sends a deathlink resulting from ending the day.
+    /// </summary>
+    public void SendEndOfDayDeathLink()
     {
         if (ArchipelagoOptions.DeathLinkType == DeathLinkType.option_steps) return;
 
@@ -253,7 +279,7 @@ public class DeathLinkHandler
     }
 
     /// <summary>
-    /// called to send a death link to the multiworld
+    ///     Called to send a death link to the multiworld
     /// </summary>
     /// <param name="cause">The cause of the death link.</param>
     public void SendDeathLink(string cause = null)
