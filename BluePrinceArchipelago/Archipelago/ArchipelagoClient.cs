@@ -35,7 +35,12 @@ public class ArchipelagoClient
     public ArchipelagoClient()
     {
     }
-    //Returns the locationid from the name or -1 if It can't be found.
+    /// <summary>
+    ///     Returns the locationid from the name or -1 if It can't be found.
+    ///     Not Case Sensitive.
+    /// </summary>
+    /// <param name="locationName">The name of the location to find.</param>
+    /// <returns>The long location id of an item or -1 if not found.</returns>
     public long GetLocationFromName(string locationName)
     {
         int length = ServerData.LocationDict.Count;
@@ -47,6 +52,10 @@ public class ArchipelagoClient
         }
         return -1;
     }
+
+    /// <summary>
+    ///     Displays information about the seed and settings data of the current seed.
+    /// </summary>
     public void DisplayServerData()
     {
         Logging.Log("Options");
@@ -79,9 +88,8 @@ public class ArchipelagoClient
     }
 
     /// <summary>
-    /// call to connect to an Archipelago session. Connection info should already be set up on ServerData
+    ///     Call to connect to an Archipelago session. Connection info should already be set up on ServerData
     /// </summary>
-    /// <returns></returns>
     public void Connect()
     {
         if (Authenticated || _AttemptingConnection) return;
@@ -100,7 +108,7 @@ public class ArchipelagoClient
     }
 
     /// <summary>
-    /// add handlers for Archipelago events
+    ///     Add handlers for Archipelago events
     /// </summary>
     private void SetupSession()
     {
@@ -113,7 +121,7 @@ public class ArchipelagoClient
 
 
     /// <summary>
-    /// attempt to connect to the server with our connection info
+    ///     Attempt to connect to the server with our connection info
     /// </summary>
     private void TryConnect()
     {
@@ -165,9 +173,9 @@ public class ArchipelagoClient
     }
 
     /// <summary>
-    /// handle the connection result and do things
+    ///     Handle the connection result and start initializing the mod.
     /// </summary>
-    /// <param name="result"></param>
+    /// <param name="result">The Login Result (Successful or Unsucessful)</param>
     private void HandleConnectResult(LoginResult result)
     {
         // Handle Successful connection to AP Server.
@@ -239,7 +247,9 @@ public class ArchipelagoClient
         _AttemptingConnection = false;
     }
 
-    // Attempts to release any Queued items.
+    /// <summary>
+    ///     Internal. Receives all currently queued items from the Archipelago Server.
+    /// </summary>
     private void DequeueItems() {
         // Handle intial connect to AP.
         if (!Reconnected)
@@ -307,13 +317,19 @@ public class ArchipelagoClient
         }
     }
 
-    // Handles everything that should be handled on reconnect.
+    /// <summary>
+    ///     Handles everything that should be handled on a basic reconnect.
+    /// </summary>
     private void Reconnect() {
         ArchipelagoConsole.LogMessage("Attemping to reconnect...");
         Reconnected = true;
         ArchipelagoConsole.LogMessage("Rebuilding Archipelago State...");
         RebuildCheckedLocations();
     }
+
+    /// <summary>
+    ///     Handles all reconnection steps that should occur on recconnecting after a game crash or shut down. (game/modstate needs to be rebuilt).
+    /// </summary>
     private void GameRestart() {
         ArchipelagoConsole.LogMessage("Attemping to reconnect after game restart...");
         Reconnected = true;
@@ -326,6 +342,10 @@ public class ArchipelagoClient
         }
         ArchipelagoConsole.LogMessage("Gathering Seed Data...");
     }
+
+    /// <summary>
+    ///     Rebuilds the state of the game and mod to match the archipelago and stored data.
+    /// </summary>
     public void RebuildState() {
         long[] locationids = session.Locations.AllLocationsChecked.ToArray();
         for (int i = 0; i < locationids.Length; i++) {
@@ -391,7 +411,9 @@ public class ArchipelagoClient
         // Handle all the items that are not preserved by the game.
         StateRebuilt = true;
     }
-    // Attempts to rebuild the checked location list based on local and server locations.
+    /// <summary>
+    ///     Attempts to rebuild the checked location list based on local and server locations.
+    /// </summary>
     private void RebuildCheckedLocations()
     {
         // Make copies of the lists for editing purposes.
@@ -437,7 +459,11 @@ public class ArchipelagoClient
         }
     }
 
-    // Populates the dictionaries used for looking up location information.
+    /// <summary>
+    ///     Populates the dictionaries used for looking up location information.  
+    /// </summary>
+    /// <param name="locationIds">A series of known location ids.</param>
+    /// <param name="hint">Whether the location lookups should also be hinted.</param>
     private void CreateLocationDicts(long[] locationIds, bool hint = false)
     {
         long[] serverLocations = [.. locationIds];
@@ -477,10 +503,14 @@ public class ArchipelagoClient
         }
     }
 
+    /// <summary>
+    ///     Scouts a series of locations and hints them.
+    /// </summary>
+    /// <param name="locationIds"></param>
     public void ScoutLocationHint(long[] locationIds) => CreateLocationDicts(locationIds, true);
 
     /// <summary>
-    /// something went wrong, or we need to properly disconnect from the server. cleanup and re null our session
+    ///     Something went wrong, or we need to properly disconnect from the server. cleanup and re null our session
     /// </summary>
     private void Disconnect()
     {
@@ -491,14 +521,17 @@ public class ArchipelagoClient
         Authenticated = false;
     }
 
-    //Sends a message to the Archipelago Server.
+    /// <summary>
+    ///    Sends a message to the Archipelago Server. 
+    /// </summary>
+    /// <param name="message"></param>
     public void SendMessage(string message)
     {
         session.Socket.SendPacketAsync(new SayPacket { Text = message });
     }
 
     /// <summary>
-    /// we received an item so reward it here
+    ///     We received an item so reward it here
     /// </summary>
     /// <param name="helper">item helper which we can grab our item from</param>
     private void OnItemReceived(ReceivedItemsHelper helper)
@@ -514,7 +547,7 @@ public class ArchipelagoClient
     }
 
     /// <summary>
-    /// something went wrong with our socket connection
+    ///     Something went wrong with our socket connection
     /// </summary>
     /// <param name="e">thrown exception from our socket</param>
     /// <param name="message">message received from the server</param>
@@ -525,7 +558,7 @@ public class ArchipelagoClient
     }
 
     /// <summary>
-    /// something went wrong closing our connection. disconnect and clean up
+    ///     Something went wrong closing our connection. disconnect and clean up
     /// </summary>
     /// <param name="reason"></param>
     private void OnSessionSocketClosed(string reason)
@@ -536,13 +569,14 @@ public class ArchipelagoClient
     }
 
     /// <summary>
-    /// Whenever a local location(s) are checked remotely (like via a server command)
+    ///     Whenever a local location(s) are checked remotely (like via a server command)
     /// </summary>
     /// <param name="newCheckedLocations">the ids of the locations that were checked.</param>
     private void OnRemoteLocationChecked(ReadOnlyCollection<long> newCheckedLocations) { 
+        //TODO: Add code for normalizing the gamestate for those location unlocks.
     }
     /// <summary>
-    /// Sends to the server that the location has been checked.
+    ///     Sends to the server that the location has been checked.
     /// </summary>
     /// <param name="locationName">the name of the location to complete</param>
     public void CheckLocation(string locationName) {
@@ -557,7 +591,7 @@ public class ArchipelagoClient
         }
     }
     /// <summary>
-    /// Sends to the server that the location has been checked.
+    ///     Sends to the server that the location has been checked.
     /// </summary>
     /// <param name="locationName">the name of the location to complete</param>
     public void CheckLocation(long locationid)
@@ -573,8 +607,9 @@ public class ArchipelagoClient
         }
     }
 
-
-    // Sends the goal completed notification to the server.
+    /// <summary>
+    ///     Sends the goal completed notification to the server.
+    /// </summary>
     public void GoalCompleted()
     {
         session.SetGoalAchieved();
@@ -582,39 +617,72 @@ public class ArchipelagoClient
     }
 }
 
+/// <summary>
+///     A manager that handles certain lists as queues as queues were running into thread safety issues.
+/// </summary>
 public class ArchipelagoQueueManager {
     private ItemQueue _ReceivedItemQueue = new("Received Item Queue");
     private LocationQueue _LocationQueue = new("Location Queue");
     private UpgradeDiskUsedQueue _UpgradeUsedQueue = new("Upgrade Disk Used Queue");
-    
-    // Adds an item to the Item Queue.
+
+    /// <summary>
+    ///     Adds an item to the Item Queue.
+    /// </summary>
+    /// <param name="item">The item to add to queue.</param>
     public void AddItemToQueue(ItemInfo item) { 
         _ReceivedItemQueue.Enqueue(item);
     }
+    /// <summary>
+    ///     Removes an item from the queue.
+    /// </summary>
+    /// <param name="item">The item to remove.</param>
     public void RemoveItemFromQueue(ItemInfo item) { 
         _ReceivedItemQueue.RemoveItemFromQueue(item);
     }
 
+    /// <summary>
+    ///     Replaces the item queue with the provided List.
+    /// </summary>
+    /// <param name="queueList">The List with which to replace the queue.</param>
     public void SetItemQueue(List<ItemInfo> queueList) {
         _ReceivedItemQueue.SetQueueList(queueList);
     }
+
+    /// <summary>
+    ///     Adds an upgrade usage to the Queue.
+    /// </summary>
+    /// <param name="value">The internal upgrade disk id</param>
+    /// <returns>Returns if the value was successfully enqueued.</returns>
     public bool AddUpgradeUsedToQueue(int value) {
         return _UpgradeUsedQueue.Enqueue(value);
     }
-
+    /// <summary>
+    ///     Replaces the location queue with the provided List.
+    /// </summary>
+    /// <param name="queueList">The List with which to replace the queue.</param>
     public void SetLocationQueue(List<string> queueList) {
        _LocationQueue.SetQueueList(queueList);
     }
+
+    /// <summary>
+    ///     Returns the Item Queue as a list.
+    /// </summary>
+    /// <returns>The List of items in the queue.</returns>
     public List<ItemInfo> GetItemQueue() {
         return _ReceivedItemQueue.GetItemQueue();
     }
-    public List<string> GetLocationsQueue()
+    /// <summary>
+    ///     Returns the location Queue as a list.
+    /// </summary>
+    /// <returns>The list of locations in the queue.</returns>
+    public List<string> GetLocationQueue()
     {
         return _LocationQueue.GetLocationQueue();
     }
-
-
-    // Adds multible locations to the Location Queue.
+    /// <summary>
+    ///     Adds multiple locations to the Location Queue.
+    /// </summary>
+    /// <param name="locations"></param>
     public void AddLocationsToQueue(List<long> locations) {
         List<string> locationNames = new List<string>();
         foreach (int location in locations) {
@@ -630,7 +698,9 @@ public class ArchipelagoQueueManager {
         _LocationQueue.Enqueue(locationNames.ToArray());
     }
 
-    // Releases all the currently Queued locations.
+    /// <summary>
+    ///     Releases all the currently queued locations.
+    /// </summary>
     public void ReleaseAllQueuedLocations() {
         if (_LocationQueue.Count > 0) {
             for (int i = 0; i < _LocationQueue.Count; i++)
@@ -647,7 +717,9 @@ public class ArchipelagoQueueManager {
         }
     }
 
-    //Releases all the currently Queued Items.
+    /// <summary>
+    ///     Releases all the currently queued items.
+    /// </summary>
     public void ReleaseAllQueuedItems()
     {
         if (_ReceivedItemQueue.Count > 0)
@@ -666,7 +738,12 @@ public class ArchipelagoQueueManager {
         }
     }
 
-    // Tries to receive an item, on sucess returns true, on failure returns false.
+    /// <summary>
+    ///     Tries to receive an item.
+    /// </summary>
+    /// <param name="item">The item to attempt to receive.</param>
+    /// <param name="ignoreState">Whether this attempt should trigger a state update.</param>
+    /// <returns>On sucess returns true. On failure returns false.</returns>
     public bool ReceiveItem(ItemInfo item, bool ignoreState = true)
     {
         if (ModInstance.SceneLoaded && ModInstance.HasInitializedRooms && ArchipelagoClient.Authenticated)
@@ -725,6 +802,13 @@ public class ArchipelagoQueueManager {
         }
         return false;
     }
+
+    /// <summary>
+    ///     Handles the receiving of an item from the server. (Usually for starting inventory).
+    /// </summary>
+    /// <param name="item">The item to attempt to receive.</param>
+    /// <param name="ignoreState">Whether this attempt should trigger a state update.</param>
+    /// <returns>On sucess returns true. On failure returns false.</returns>
     public bool ReceiveServerItem(ItemInfo item, bool ignoreState = false) {
         if (ModInstance.IsInRun)
         {
@@ -802,6 +886,10 @@ public class ArchipelagoQueueManager {
         }
         return false;
     }
+
+    /// <summary>
+    ///     Dequeues the next item in the Queue.
+    /// </summary>
     public void DequeueItem() {
         if (_ReceivedItemQueue.Count > 0)
         {
@@ -809,6 +897,10 @@ public class ArchipelagoQueueManager {
             ReceiveItem(item);
         }
     }
+
+    /// <summary>
+    ///     Dequeues the next location in the Queue.
+    /// </summary>
     public void DequeueLocation() {
         if (_LocationQueue.Count > 0)
         {
@@ -816,6 +908,10 @@ public class ArchipelagoQueueManager {
             Plugin.ArchipelagoClient.CheckLocation(location);
         }
     }
+
+    /// <summary>
+    ///     Dequeues the next upgrade disk use in the queue.
+    /// </summary>
     public void DequeueUsedUpgrade() {
         if (_UpgradeUsedQueue.Count > 0) {
             int upgradeId = _UpgradeUsedQueue.Dequeue() ?? -1;
@@ -826,12 +922,18 @@ public class ArchipelagoQueueManager {
         }
     }
 
+    /// <summary>
+    ///     Adds a location to the queue.
+    /// </summary>
+    /// <param name="name">The name of the location to Dequeue.</param>
     public void AddLocationToQueue(string name) { 
         _LocationQueue.Enqueue(name);
     }
 
-
-    // Handles receiving an item. (doesn't check if it's safe to do so).
+    /// <summary>
+    ///    Handles receiving an Room. (doesn't check if it was successfully recieved.).  
+    /// </summary>
+    /// <param name="item">The archipelago ItemInfo of the room that is being received.</param>
     public void ReceiveRoom(ItemInfo item) {
         // Try to find the room, using mapping for special cases
         ModRoom room = Plugin.ModRoomManager.GetRoomByName(item.ItemName);
@@ -899,22 +1001,36 @@ public class ArchipelagoQueueManager {
         room.Handler?.OnRoomUnlocked(room);
         Logging.Log($"Room '{room.Name}' unlocked and added to pool.");
     }
-    // Handles receiving a trap. (doesn't check if it's safe to do so).
+    /// <summary>
+    ///     Handles receiving a trap. (Doesn't check if it was successfully received).  
+    /// </summary>
+    /// <param name="item">The ItemInfo of the received trap.</param>
+    /// <param name="ignoreState">Whether the State should be ignored on receiving the trap.</param>
     public void ReceiveTrap(ItemInfo item, bool ignoreState = false) {
         Plugin.ModItemManager.OnTrapReceived(item);
     }
-    // Handles recieving a local item. (doesn't check if it's safe to do so).
+    /// <summary>
+    ///     Handles receiving a local item. (Doesn't check if it was successfully received).
+    /// </summary>
+    /// <param name="item">The ItemInfo of the received trap.</param>
+    /// <param name="ignoreState">Whether the State should be ignored on receiving the trap.</param>
     public void ReceiveLocalItem(ItemInfo item, bool ignoreState = false) {
         Plugin.ModItemManager.OnItemCheckRecieved(item);
         //This may need to be moved to a better place once the item code is better implemented.
     }
-    // Returns true if the location can be sent, Returns false if it can't.
+    /// <summary>
+    ///     Checks if a location check can be sent.
+    /// </summary>
+    /// <returns>True if a location can be sent, false if it cannot.</returns>
     private bool SendLocationCheck() {
         return ModInstance.SceneLoaded && ModInstance.HasInitializedRooms && ArchipelagoClient.Authenticated;
     }
 }
 
-// Using a list as a Queue due to issues with Queues breaking. May revert back to a proper Queue later.
+/// <summary>
+///     A class for treating an item list like a Queue.
+/// </summary>
+/// <param name="name">The name of the Queue.</param>
 public class ItemQueue(string name) {
     private readonly string _Name = name;
     public string Name {
@@ -925,21 +1041,40 @@ public class ItemQueue(string name) {
     {
         get { return _Queue.Count; }
     }
+    /// <summary>
+    ///     Adds an item to the Queue.
+    /// </summary>
+    /// <param name="item">The item to add to the queue.</param>
     public void Enqueue(ItemInfo item) {
         if (item != null)
         {
             _Queue.Add(item);
         }
     }
+
+    /// <summary>
+    ///     Adds multiple items to the queue.
+    /// </summary>
+    /// <param name="items">The collection of items to add to the queue.</param>
     public void Enqueue(ItemInfo[] items) {
         _Queue.AddRange(items);
     }
+
+    /// <summary>
+    ///     Removes an item from the queue.
+    /// </summary>
+    /// <param name="item">The item to find.</param>
     public void RemoveItemFromQueue(ItemInfo item) {
         int index = IndexOf(item.ItemName);
         if (index != -1) {
             _Queue.RemoveAt(index);
         }
     }
+    /// <summary>
+    ///     Finds the index of an item via the item name.
+    /// </summary>
+    /// <param name="itemName">The item name of the item to find.</param>
+    /// <returns>The index of the item to find. -1 if not found.</returns>
     private int IndexOf(string itemName) {
         for (int i = 0; i < _Queue.Count; i++) {
             if (_Queue[i].ItemName == itemName) {
@@ -949,6 +1084,10 @@ public class ItemQueue(string name) {
         return -1;
     }
 
+    /// <summary>
+    ///     Dequeues an item from the queue.
+    /// </summary>
+    /// <returns>The item info of the dequeued Item.</returns>
     public ItemInfo Dequeue() {
         if (_Queue.Count == 0) {
             Logging.LogWarning("No Items in Queue, cannot Dequeue");
@@ -959,16 +1098,29 @@ public class ItemQueue(string name) {
         return temp;
     }
 
+    /// <summary>
+    ///     Replaces the queue with the provided list.
+    /// </summary>
+    /// <param name="queueList">The list to replace with.</param>
     public void SetQueueList(List<ItemInfo> queueList)
     {
         _Queue = queueList;
     }
 
+    /// <summary>
+    ///     Returns the ItemQueue as a list.
+    /// </summary>
+    /// <returns>The ItemQueue as a list.</returns>
     public List<ItemInfo> GetItemQueue()
     {
         return _Queue;
     }
 }
+
+/// <summary>
+///      A class for treating an item list like a Queue.
+/// </summary>
+/// <param name="name">The name of the location Queue.</param>
 public class LocationQueue(string name) {
     private readonly string _Name = name;
     public string Name
@@ -980,14 +1132,27 @@ public class LocationQueue(string name) {
     {
         get { return _Queue.Count; }
     }
+    /// <summary>
+    ///     Adds a location to the queue.
+    /// </summary>
+    /// <param name="location">The location to add to the queue.</param>
     public void Enqueue(string location)
     {
         _Queue.Add(location);
     }
+    /// <summary>
+    ///     Adds multiple locations to the queue.
+    /// </summary>
+    /// <param name="locations">The collection of locations to add to the queue.</param>
     public void Enqueue(string[] locations)
     {
         _Queue.AddRange(locations);
     }
+
+    /// <summary>
+    ///     Dequeues the next location from the queue.
+    /// </summary>
+    /// <returns>The Dequeued location.</returns>
     public string Dequeue()
     {
         if (_Queue.Count == 0)
@@ -1000,17 +1165,30 @@ public class LocationQueue(string name) {
         return temp;
     }
 
+    /// <summary>
+    ///     Replaces the queue with the given list.
+    /// </summary>
+    /// <param name="queueList">The list to replace the queue with.</param>
     public void SetQueueList(List<string> queueList)
     {
         _Queue = queueList;
     }
 
+    /// <summary>
+    ///     Returns the LocationQueue as a list.
+    /// </summary>
+    /// <returns>The LocationQueue as a list.</returns>
     public List<string> GetLocationQueue()
     {
         return _Queue;
     }
 
 }
+
+/// <summary>
+///     A class for queueing Upgrade Disk Uses for the next Update().
+/// </summary>
+/// <param name="name">The Name of the Queue.</param>
 public class UpgradeDiskUsedQueue(string name)
 {
     private readonly string _Name = name;
@@ -1023,6 +1201,12 @@ public class UpgradeDiskUsedQueue(string name)
     {
         get { return _Queue.Count; }
     }
+   
+    /// <summary>
+    ///     Adds the upgrade disk id to the queue.
+    /// </summary>
+    /// <param name="value">The uppgrade disk id to be queued.</param>
+    /// <returns>If the value was successfully Queued.</returns>
     public bool Enqueue(int value)
     {
         if (!_Queue.Contains(value)) {
@@ -1031,6 +1215,11 @@ public class UpgradeDiskUsedQueue(string name)
         }
         return false;
     }
+
+    /// <summary>
+    ///    Dequeues the next upgrade disk id.
+    /// </summary>
+    /// <returns>The dequeued upgrade disk id, or null if none to dequeue.</returns>
     public int? Dequeue()
     {
         if (_Queue.Count == 0)
@@ -1043,6 +1232,10 @@ public class UpgradeDiskUsedQueue(string name)
         return temp;
     }
 
+    /// <summary>
+    ///     Replaces the UpgradeDiskQueue with the provided list.
+    /// </summary>
+    /// <param name="queueList">The list to replace the UpgradeDiskUsedQueue with.</param>
     public void SetQueueList(List<int> queueList)
     {
         _Queue = queueList;
