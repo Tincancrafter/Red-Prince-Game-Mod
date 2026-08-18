@@ -1,6 +1,5 @@
 ﻿using BepInEx.Unity.IL2CPP.Utils.Collections;
 using BluePrinceArchipelago.Archipelago;
-using BluePrinceArchipelago.Core;
 using BluePrinceArchipelago.Events;
 using BluePrinceArchipelago.Items;
 using BluePrinceArchipelago.Patches;
@@ -19,6 +18,9 @@ using static Rewired.Glyphs.UnityUI.UnityUITextMeshProGlyphHelper.Tag;
 
 namespace BluePrinceArchipelago
 {
+    /// <summary>
+    ///     The actual instance of the mod.
+    /// </summary>
     internal class ModInstance : MonoBehaviour
     {
         // A reference to the instance of this MonoBehavior.
@@ -88,11 +90,18 @@ namespace BluePrinceArchipelago
 
         public static int LoadCount = 0;
 
-
+        /// <summary>
+        ///     Initializing the instance.
+        /// </summary>
+        /// <param name="ptr">The ptr for IL2Cpp.</param>
         public ModInstance(IntPtr ptr) : base(ptr)
         {
             Instance = this; //Set the modInstance for easy access.
         }
+
+        /// <summary>
+        ///     Unity Monobehavior start.
+        /// </summary>
         private void Start()
         {
             SceneManager.sceneLoaded += (Action<Scene, LoadSceneMode>)OnSceneLoaded;
@@ -103,6 +112,10 @@ namespace BluePrinceArchipelago
             Prefabs = GameObject.Instantiate(new GameObject("Prefabs"), Plugin.ModObject.transform);
             Prefabs.name = "prefabs";
         }
+        /// <summary>
+        ///     An enumerator for loading any bundled mod assets.
+        /// </summary>
+        /// <returns>The current asset.</returns>
         IEnumerator LoadAllAssets()
         {
             AssetBundle bundle = Plugin.AssetBundle;
@@ -124,8 +137,11 @@ namespace BluePrinceArchipelago
             }
             ArchipelagoPrefabsLoaded = true;
         }
-
-        // Called whenver a scene is loaded (triggered by the scene manager).
+        /// <summary>
+        ///     Called whenver a scene is loaded (triggered by the scene manager).
+        /// </summary>
+        /// <param name="scene">The current Unity Scene</param>
+        /// <param name="mode">The mod the scene is loaded in (Single/Additive).</param>
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             Logging.Log($"Scene: {scene.name} loaded in {mode}");
@@ -195,7 +211,6 @@ namespace BluePrinceArchipelago
                     }
                 }
                 
-                // Use Invoke to delay the sync - increased to 1 second for safety
                 InitializeUpgradeDiskNotifications();
                 HasInitializedRooms = true;
             }
@@ -206,7 +221,9 @@ namespace BluePrinceArchipelago
 
             PreviousSceneName = scene.name;
         }
-        // Handles the mod object being destroyed somehow.
+        /// <summary>
+        ///     Occurrs if the mod instance is destroyed.
+        /// </summary>
         private void OnDestroy()
         {
             SceneManager.sceneLoaded -= (Action<Scene, LoadSceneMode>)OnSceneLoaded;
@@ -216,6 +233,9 @@ namespace BluePrinceArchipelago
             Harmony.UnpatchID("FsmRoomPatch");
         }
 
+        /// <summary>
+        ///     Runs every Game Tick.
+        /// </summary>
         private void Update() {
             if (IsInRun && ArchipelagoClient.Authenticated)
             {
@@ -224,7 +244,15 @@ namespace BluePrinceArchipelago
                 QueueManager.DequeueLocation();
             }
         }
-        // Fires off when an event is sent from an FSM to an FSM or GameObject. Sometimes fails
+        /// <summary>
+        ///     Fires off when an event is sent from an FSM to an FSM or GameObject.
+        /// </summary>
+        /// <param name="target">The target of the event.</param>
+        /// <param name="sendEvent">The event being sent.</param>
+        /// <param name="delay">The delay of the event (0f if not delayed).</param>
+        /// <param name="delayedEvent">The instance of the delayed event. Null if not delayed.</param>
+        /// <param name="owner">The GameObject that sent the event.</param>
+        /// <param name="isDelayed">A bool indicating if the event is delayed.</param>
         public static void OnEventSend(FsmEventTarget target, FsmEvent sendEvent, FsmFloat delay, DelayedEvent delayedEvent, GameObject owner, bool isDelayed) {
             string eventName = sendEvent?.name;
             string targetType = target?.target.ToString() ?? "";
@@ -372,6 +400,11 @@ namespace BluePrinceArchipelago
             }
         }
 
+        /// <summary>
+        ///     Triggers whenever a room is spawned, before it's regular code.
+        /// </summary>
+        /// <param name="obj">The object prefab to be spawned.</param>
+        /// <param name="transformObj">The object with the spawn location data.</param>
         public static void OnRoomSpawned(GameObject obj, GameObject transformObj) {
             if (obj != null)
             {
@@ -405,10 +438,22 @@ namespace BluePrinceArchipelago
                 }
             }
         }
+
+        /// <summary>
+        ///     Runs after a room has been fully spawned.
+        /// </summary>
+        /// <param name="obj">The spawned room object.</param>
         public static void OnAfterRoomSpawned(GameObject obj) {
             ModRoom room = Plugin.ModRoomManager.GetRoomByName(obj.name.ToUpper().Trim());
             room?.Handler?.OnAfterRoomDrafted(obj);
         }
+
+        /// <summary>
+        ///     When something other than a room or item is spawned.
+        /// </summary>
+        /// <param name="obj">The spawned object.</param>
+        /// <param name="poolName">The name of the spawn pool that object is from.</param>
+        /// <param name="transformObj">The object with the spawn location data.</param>
         public static void OnOtherSpawn(GameObject obj, string poolName, GameObject transformObj) {
             
         }
@@ -475,11 +520,6 @@ namespace BluePrinceArchipelago
         }
 
         /// <summary>
-        /// Called after a delay when the scene loads to sync room pools.
-        /// This ensures the game has finished initializing all draft pools before we modify them.
-        /// </summary>
-
-        /// <summary>
         /// Re-loads the picker arrays. Call this when arrays may have been reset by the game.
         /// </summary>
         public static void ReloadArrays()
@@ -492,10 +532,10 @@ namespace BluePrinceArchipelago
         }
 
         /// <summary>
-        /// Syncs room pools with Archipelago received items. 
-        /// Should be called at the start of each day when connected to Archipelago.
-        /// Only operates if RoomDraftSanity option is enabled.
-        /// Even with no items received, this will lock all rooms for Archipelago mode.
+        ///     Syncs room pools with Archipelago received items. 
+        ///     Should be called at the start of each day when connected to Archipelago.
+        ///     Only operates if RoomDraftSanity option is enabled.
+        ///     Even with no items received, this will lock all rooms for Archipelago mode.
         /// </summary>
         public static void SyncRoomPoolsWithArchipelago()
         {
@@ -534,10 +574,10 @@ namespace BluePrinceArchipelago
         }
 
         /// <summary>
-        /// Lightweight method to ensure room unlock states match Archipelago received items.
-        /// Unlike full sync, this doesn't reset counts or clear rooms — just ensures unlock states are correct.
-        /// Call this before UpdateRoomPools() when a draft is about to start.
-        /// Only operates if RoomDraftSanity option is enabled.
+        ///     Lightweight method to ensure room unlock states match Archipelago received items.
+        ///     Unlike full sync, this doesn't reset counts or clear rooms — just ensures unlock states are correct.
+        ///     Call this before UpdateRoomPools() when a draft is about to start.
+        ///     Only operates if RoomDraftSanity option is enabled.
         /// </summary>
         public static void EnsureRoomUnlockStates()
         {
@@ -565,7 +605,9 @@ namespace BluePrinceArchipelago
             }
         }
 
-        // Handles End of Day code.
+        /// <summary>
+        ///     A function called at the end of a day (when the player loses control of the player object.
+        /// </summary>
         public static void OnDayEnd() {
             IsInRun = false;
             var fsm = GameObject.Find("UI OVERLAY CAM")?.transform?.Find("END OF DAYS CHECKS")?.gameObject?.GetFsm("FSM");
@@ -573,6 +615,10 @@ namespace BluePrinceArchipelago
             Plugin.ArchipelagoClient?.DeathLinkHandler?.SendEndOfDayDeathLink(fsm);
             Plugin.UniqueItemManager.EndOfDay();
         }
+
+        /// <summary>
+        ///     Called just before the draft initializes on non-outer room drafts.
+        /// </summary>
         public static void OnDraftBeforeInitialize()
         {
             if (ArchipelagoClient.Authenticated)
@@ -581,7 +627,9 @@ namespace BluePrinceArchipelago
             }
         }
 
-        // Handles initializing rooms. Called when a draft is about to start (e.g., player opens a door).
+        /// <summary>
+        ///     Handles initializing rooms. Called when a draft is about to start (e.g., player opens a door).
+        /// </summary>
         public static void OnDraftInitialize() 
         {
             if (ArchipelagoClient.Authenticated)
@@ -589,7 +637,11 @@ namespace BluePrinceArchipelago
                 Plugin.ModRoomManager.RecheckRoomUnlockStatus();
             }
         }
-
+        // TODO: Fix outer room hook.
+        /// <summary>
+        ///     Called when the Outer Room Draft starts. Hook currently doesn't function properly.
+        /// </summary>
+        /// <param name="draftManager">The draft manager object for the outer room.</param>
         public static void OnOuterDraftStart(OuterDraftManager draftManager) {
             if (HasInitializedRooms) {
                 // Skip Archipelago room pool management if RoomDraftSanity is disabled
@@ -617,10 +669,19 @@ namespace BluePrinceArchipelago
             }
         }
 
+        /// <summary>
+        ///     Unity's inbuilt OnGui call. Intended for Unity GUI updates.
+        /// </summary>
         private void OnGUI()
         {
             ArchipelagoConsole.OnGUI();
         }
+
+        /// <summary>
+        ///     Whenever a location from the game is sent.
+        /// </summary>
+        /// <param name="sender">The Object that sent the Location check.</param>
+        /// <param name="e">The event arguements.</param>
         public static void OnLocalLocationSent(System.Object sender, LocationEventArgs e)
         {
             Logging.Log($"Location sent: {e.LocationName} of the location type: {e.LocationType}");
@@ -629,21 +690,31 @@ namespace BluePrinceArchipelago
                 Plugin.ArchipelagoClient.CheckLocation(e.LocationName);
             }
         }
-        public static void OnDraftBeforePick(RoomDraftHelper instance)
-        {
-            
-        }
 
+        /// <summary>
+        ///     Gets a string variable from the GlobalPersistentManager.
+        /// </summary>
+        /// <param name="key">The name of the variable</param>
+        /// <returns>The string value of the variable</returns>
         public static string GetPersistentDataString(string key)
         {
             return GlobalPersistentManager?.GetStringVariable(key)?.Value;
         }
 
+        /// <summary>
+        ///     Gets a int variable from the GlobalPersistentManager.
+        /// </summary>
+        /// <param name="key">The name of the variable</param>
+        /// <returns>The int value of the variable</returns>
         public static int GetPersistentDataInt(string key)
         {
             return GlobalPersistentManager?.GetIntVariable(key)?.Value ?? 0;
         }
 
+        /// <summary>
+        ///     Triggered whenever an event it recorded by the Game's StatLogger.
+        /// </summary>
+        /// <param name="id">The Enum EventID of the event being recorded.</param>
         public static void OnRecordEvent(EventID id)
         {
             Logging.Log($"Stats being recorded for {id}.", "StatEvents");
@@ -804,7 +875,10 @@ namespace BluePrinceArchipelago
         }
 
         //TODO update this to be less hacky.
-        // loads the list of picker arrays the rooms can be added to. May rewrite to use names instead of the id of the child for better forward compatibility.
+        /// <summary>
+        ///     loads the list of picker arrays the rooms can be added to. 
+        ///     May rewrite to use names instead of the id of the child for better forward compatibility.
+        /// </summary>
         private static void LoadArrays() {
             // Core picker arrays (indexes 2-32, 55-56, 58-61)
             PlayMakerArrayListProxy array = null;
@@ -842,6 +916,9 @@ namespace BluePrinceArchipelago
             //}
         }
 
+        /// <summary>
+        ///     Triggered when a connection to the Archipelago server has been established.
+        /// </summary>
         public static void OnConnectToArchipelago() {
            
             // Only sync if rooms are already initialized (connected mid-run, not from main menu)
@@ -870,6 +947,10 @@ namespace BluePrinceArchipelago
                 Plugin.ModRoomManager.HLCFix();
             }
         }
+
+        /// <summary>
+        ///     Internal. Initializes the notification UI objects for when Upgrade Disks are bought or purchased.
+        /// </summary>
         private static void InitializeUpgradeDiskNotifications()
         {
             GameObject YouBoughtUpgradeDisk = GameObject.Find("UI OVERLAY CAM/You Found Text/You Bought Upgrade Disk").gameObject;
@@ -937,6 +1018,9 @@ namespace BluePrinceArchipelago
             UpgradeDisks.YouFoundObjects = [ArchivesDiskNotification, TradingPostDiskNotification, TombDiskNotification, CommissaryDiskNotification, FoundationDiskNotification, FreezerDiskNotification, GarageDiskNotification, GreatHallDiskNotification, LostAndFoundDiskNotification, HLCDiskNotification, MechanariumDiskNotification, MorningRoomDiskNotification, OfficeDiskNotification, null, VaultDiskNotification, AbandonedMineDiskNotification];
         }
 
+        /// <summary>
+        ///     Internal. Intializes all of the base game rooms as mod objects so the mod can track details about them.
+        /// </summary>
         private static void InitializeRooms()
         {
             Logging.Log("Initializing Rooms");

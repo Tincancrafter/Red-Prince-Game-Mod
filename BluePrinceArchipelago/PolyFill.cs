@@ -7,6 +7,9 @@ namespace System.Runtime.CompilerServices;
 
 using System.ComponentModel;
 
+/// <summary>
+///     A fix for nullables on the current Unity version.
+/// </summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Parameter | AttributeTargets.ReturnValue | AttributeTargets.GenericParameter, Inherited = false)]
 internal sealed class NullableAttribute : Attribute

@@ -10,6 +10,9 @@ using UnityEngine;
 
 namespace BluePrinceArchipelago {
 
+    /// <summary>
+    ///     The base of the Plugin/Mod.
+    /// </summary>
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     public class Plugin : BasePlugin
     {
@@ -29,6 +32,10 @@ namespace BluePrinceArchipelago {
         public static ModRoomManager ModRoomManager;
         public static ModItemManager ModItemManager;
         public static UniqueItemManager UniqueItemManager;
+
+        /// <summary>
+        ///     Handles the initial load of the plugin (not the game).
+        /// </summary>
         public override void Load()
         {
             Logging.SetLogLevel("Entrance Hall", LogLevel.Info);
@@ -57,6 +64,7 @@ namespace BluePrinceArchipelago {
             _instance = this;
             AssetBundle = AssetExtensions.LoadAssetBundleFromAssembly(AssetExtensions.GetResourceNameFromPath("assets/apprefabs"));
             Log.LogInfo($"Plugin {PluginGUID} is loaded!");
+            
             //Inject custom Object for Mod Handling
             ClassInjector.RegisterTypeInIl2Cpp<ModInstance>();
             ModObject = new GameObject("Archipelago");
@@ -64,6 +72,8 @@ namespace BluePrinceArchipelago {
             ModObject.hideFlags = HideFlags.HideAndDontSave; //The mod breaks if this is removed. Unsure if different flags could be used to make this more visible.
             ModObject.AddComponent<ModInstance>();
             ModObject.AddComponent<PlayMakerFSM>(); //Add A PlayMakerFSM to be used for Events.
+
+            // Start up the necessary game systems.
             State.Initialize();
             ArchipelagoConsole.Awake();
             ArchipelagoConsole.LogMessage($"{ModDisplayInfo} loaded!");
