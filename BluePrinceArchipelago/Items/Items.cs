@@ -16,6 +16,10 @@ using UnityEngine;
 
 namespace BluePrinceArchipelago.Items
 {
+
+    /// <summary>
+    ///     The Manager for the Items the mod manages. 
+    /// </summary>
     public class ModItemManager
     {
         public static List<PermanentItem> PermanentItemList = [];
@@ -39,6 +43,10 @@ namespace BluePrinceArchipelago.Items
         {
 
         }
+
+        /// <summary>
+        ///     Loads all the ArrayLists which the game stores Unique Items in.
+        /// </summary>
         public static void LoadInventories()
         {
 
@@ -50,6 +58,10 @@ namespace BluePrinceArchipelago.Items
             InventoryItems = GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /Inventory/InventoryGameobjects")?.GetArrayListProxy("InventoryGameobjects");
             UpgradeDisks.GameObj = GameObject.Find("__SYSTEM/Upgrade Disks");
         }
+
+        /// <summary>
+        ///     Replaces all the Unique Item with their AP versions if applicable.
+        /// </summary>
         public void ReplaceItemsWithAP()
         {
             ReplaceUniqueItemsWithAP();
@@ -58,6 +70,10 @@ namespace BluePrinceArchipelago.Items
                 ReplaceUpgradeDisksWithAP();
             }
         }
+
+        /// <summary>
+        ///     Replaces Unique items (excluding some special cases) with their AP Version if applicable.
+        /// </summary>
         public void ReplaceUniqueItemsWithAP()
         {
             foreach (UniqueItem item in UniqueItemList)
@@ -125,6 +141,13 @@ namespace BluePrinceArchipelago.Items
             }
         }
 
+
+        /// <summary>
+        ///     Replaces an AP Item's notification with the appropriate item data and the UI model with the AP model.
+        /// </summary>
+        /// <param name="itemName">The name of the item</param>
+        /// <param name="item">The GameObject of the item.</param>
+        /// <param name="scoutname">The scoutname of the object if different than it's name.</param>
         public void ReplaceAPItemNotifications(string itemName, GameObject item, string scoutname = "")
         {
             List<Transform> FoundModels = new();
@@ -337,6 +360,12 @@ namespace BluePrinceArchipelago.Items
             }
         }
 
+
+        /// <summary>
+        ///     Replaces the name of an item with the internally used name specific to pickup, buying, and dig up notifications.
+        /// </summary>
+        /// <param name="name">The name of the item.</param>
+        /// <returns>The item name for the notification.</returns>
         private string GetYou___Name(string name) {
             name = name.ToTitleCase();
             switch (name)
@@ -368,6 +397,11 @@ namespace BluePrinceArchipelago.Items
             }
         }
 
+        /// <summary>
+        ///     Gets the internally used name of the item model within the item notification.
+        /// </summary>
+        /// <param name="name">The item name.</param>
+        /// <returns>The model name.</returns>
         private string GetItemModelName(string name) {
             switch (name.ToUpper())
             {
@@ -395,6 +429,13 @@ namespace BluePrinceArchipelago.Items
                     return name;
             }
         }
+
+        /// <summary>
+        ///     Looks to see if the notification is for a similarly named item.
+        /// </summary>
+        /// <param name="itemName">Item name.</param>
+        /// <param name="child">The item's child transform</param>
+        /// <returns></returns>
         private bool CheckSimilar(string itemName, Transform child) {
 
             if (itemName.ToLower() == "compass")
@@ -413,7 +454,10 @@ namespace BluePrinceArchipelago.Items
                 return false;
         }
 
-        // Removes the AP Swirlies from Unique Items. Not needed for regular items.
+        /// <summary>
+        ///     Removes the AP Swirlies from Unique items, for use when the swirlies need to be removed mid-day.
+        /// </summary>
+        /// <param name="item">The item to remove swirlies from.</param>
         public void RemoveUniqueItemAPSwirly(UniqueItem item) {
             GameObject spawnObj = FindSpawnObject(item.Name);
             if (spawnObj == null)
@@ -426,6 +470,9 @@ namespace BluePrinceArchipelago.Items
             item.ModelReplaced = false;
         }
 
+        /// <summary>
+        ///     Replaces upgrade disks with their AP version (if applicable).
+        /// </summary>
         public void ReplaceUpgradeDisksWithAP() {
             GameObject prefab = ModInstance.Prefabs.GetChild("UPGRADE DISK");
             if (prefab != null) {
@@ -453,10 +500,14 @@ namespace BluePrinceArchipelago.Items
                         }
                     }
                 }
-                // Replaces the You Found and You bought Message for the Upgrade disk with the Commissary Message. Will Replace the others programmatically. 
+                
                 ReplaceUpgradeDiskNotifications();
             }
         }
+
+        /// <summary>
+        ///     Replaces the You Found and You bought Message for the Upgrade disk with the Commissary Message. Will Replace the others programmatically. 
+        /// </summary>
         public void ReplaceUpgradeDiskNotifications() {
             int j = 0;
             GameObject item = null;
@@ -661,6 +712,11 @@ namespace BluePrinceArchipelago.Items
             }
         }
 
+        /// <summary>
+        ///     Finds the spawned version of an item icon,
+        /// </summary>
+        /// <param name="name">The name of the item.</param>
+        /// <returns>The GameObject of the inventory Icon.</returns>
         private GameObject FindSpawnObject(string name) {
             name = name.Replace("_0", "");
             string instanceName = name + "(Clone)001";
@@ -677,7 +733,10 @@ namespace BluePrinceArchipelago.Items
             return spawnObj;
         }
 
-        // Adds a unique item if it doesn't already exist.
+        /// <summary>
+        ///     Adds a Unique item to the Unique item list if it's not already tracked.
+        /// </summary>
+        /// <param name="item">The item to add.</param>
         public void AddItem(UniqueItem item)
         {
             bool found = false;
@@ -702,6 +761,11 @@ namespace BluePrinceArchipelago.Items
             }
         }
 
+        /// <summary>
+        ///     Lists which items exist in a given pool.
+        /// </summary>
+        /// <param name="listType">The pool to list items from.</param>
+        /// <returns>The list of items in the pool as a string.</returns>
         public string ListItems(string listType)
         {
             if (listType == null)
@@ -746,11 +810,20 @@ namespace BluePrinceArchipelago.Items
 
         }
 
+        /// <summary>
+        ///     Adds a trap to the list of traps..
+        /// </summary>
+        /// <param name="trap">The trap to add.</param>
         public void AddTrap(Trap trap)
         {
             TrapList.Add(trap);
         }
 
+        /// <summary>
+        ///     Adds a Junk Item to the junk item list.
+        /// </summary>
+        /// <param name="itemToAdd">The junk item to add.</param>
+        /// <param name="count">The number of that item to add to the pool.</param>
         public void AddItem(JunkItem itemToAdd, int count = 1)
         {
             foreach (ModItem item in JunkItemList)
@@ -764,6 +837,11 @@ namespace BluePrinceArchipelago.Items
             ItemDict[itemToAdd.Name] = itemToAdd;
             JunkItemList.Add(itemToAdd);
         }
+
+        /// <summary>
+        ///     Adds a permanent (persistent) item to the permanent item list..
+        /// </summary>
+        /// <param name="itemToAdd">The item to add.</param>
         public void AddItem(PermanentItem itemToAdd)
         {
             foreach (ModItem item in PermanentItemList)
@@ -776,46 +854,13 @@ namespace BluePrinceArchipelago.Items
             ItemDict[itemToAdd.Name] = itemToAdd;
             PermanentItemList.Add(itemToAdd);
         }
-        public void AddItem(string name, GameObject gameObject, bool isUnlocked, bool isUnique = false, bool isJunk = false, bool isPermanent = false, int count = 1, string itemType = null)
-        {
-            if (isUnique)
-            {
-                if (isJunk || isPermanent || itemType != null || count > 1 || count < 1)
-                {
-                    Logging.Log($"{name} could not be added as a Unique item, invalid parameters");
-                    return;
-                }
-                UniqueItem item = new UniqueItem(name, gameObject, isUnlocked);
-                ItemDict[item.Name] = item;
-                UniqueItemList.Add(item);
-            }
-            else if (isJunk)
-            {
-                if (itemType == null || count == 0 || isPermanent)
-                {
-                    Logging.Log($"{name} could not be added as a Junk/Trap item, invalid parameters.");
-                    return;
-                }
-                JunkItem item = new JunkItem(name, gameObject, isUnlocked, itemType, count);
-                ItemDict[item.Name] = item;
-                JunkItemList.Add(item);
-            }
-            else if (isPermanent)
-            {
-                if (itemType == null || count < 1)
-                {
-                    Logging.Log($"{name} could not be added as a Permanent Item, invalid parameters.");
-                    return;
-                }
-                PermanentItem item = new PermanentItem(name, gameObject, isUnlocked, itemType, count);
-                ItemDict[item.Name] = item;
-                PermanentItemList.Add(item);
-            }
-            else
-            {
-                Logging.LogWarning("Item could not be added, invalid parameters.");
-            }
-        }
+
+        /// <summary>
+        ///     Gets a UniqueItem.
+        ///     Not case sensitive.
+        /// </summary>
+        /// <param name="name">The name of the unique item to find.</param>
+        /// <returns>The UniqueItem or null if not found.</returns>
         public UniqueItem GetUniqueItem(string name)
         {
            
@@ -829,6 +874,12 @@ namespace BluePrinceArchipelago.Items
             return null;
         }
 
+        /// <summary>
+        ///     Gets a JunkItem.
+        ///     Not case sensitive.
+        /// </summary>
+        /// <param name="name">The name of the junk item to find.</param>
+        /// <returns>The JunkItem or null if not found.</returns>
         public JunkItem GetJunkItem(string name)
         {
             foreach (JunkItem item in JunkItemList)
@@ -841,6 +892,13 @@ namespace BluePrinceArchipelago.Items
             }
             return null;
         }
+
+        /// <summary>
+        ///     Gets a PermanentItem.
+        ///     Not case sensitive.
+        /// </summary>
+        /// <param name="name">The name of the permanent item to find.</param>
+        /// <returns>The PermanentItem or null if not found.</returns>
         public PermanentItem GetPermanentItem(string name)
         {
             foreach (PermanentItem item in PermanentItemList)
@@ -853,6 +911,9 @@ namespace BluePrinceArchipelago.Items
             return null;
         }
 
+        /// <summary>
+        ///     The code related to items that should be run on day start.
+        /// </summary>
         public void StartOfDay()
         {
             AddAllPermanenentItems();
@@ -862,9 +923,10 @@ namespace BluePrinceArchipelago.Items
             }
             
         }
-        // returns true if item was released from queue, returns false if no item in queue to release or failed to release the item.
 
-        // Adds all permanent items to inventory, meant to be run at start of day.
+        /// <summary>
+        ///     Adds all permanent items to inventory, meant to be run at start of day.
+        /// </summary>
         public void AddAllPermanenentItems()
         {
             Logging.LogWarning("Adding Permanent Items", "Items");
@@ -881,6 +943,11 @@ namespace BluePrinceArchipelago.Items
 
             }
         }
+
+        /// <summary>
+        ///     Triggers when a trap is received.
+        /// </summary>
+        /// <param name="itemInfo">The ItemInfo of the trap.</param>
         public void OnTrapReceived(ItemInfo itemInfo)
         {
             // Get the first matching item.
@@ -894,6 +961,12 @@ namespace BluePrinceArchipelago.Items
                 Logging.LogError($"Error receiving {itemInfo.ItemName}: No Trap with that name could be found.");
             }
         }
+
+        /// <summary>
+        ///     Gets the type of the item based on it's name.
+        /// </summary>
+        /// <param name="itemName">The name of the item.</param>
+        /// <returns>The type of the item as a string.</returns>
         public string GetItemType(string itemName)
         {
             ModItem item = GetPermanentItem(itemName);
@@ -915,7 +988,10 @@ namespace BluePrinceArchipelago.Items
             return null;
         }
 
-        // Handle the code for recieving an item check that results in receiving an item.
+        /// <summary>
+        ///     Triggers recieving an item check.
+        /// </summary>
+        /// <param name="itemInfo">The ItemInfo of the received item.</param>
         public void OnItemCheckRecieved(ItemInfo itemInfo)
         {
             ModItem item = null;
@@ -937,7 +1013,12 @@ namespace BluePrinceArchipelago.Items
             }
         }
 
-        // Checks if the item is currently spawnable.
+        /// <summary>
+        ///     Checks if the item is currently spawnable based on the state of inventories.
+        /// </summary>
+        /// <param name="item">The GameObject of the item check.</param>
+        /// <param name="isPrespawn">If the item is normally in the prespawn list.</param>
+        /// <returns>True if the item should be spawnable.</returns>
         public bool IsItemSpawnable(GameObject item, bool isPrespawn = true)
         {
             if (CoatCheck.Contains(item))
@@ -968,7 +1049,11 @@ namespace BluePrinceArchipelago.Items
             return false;
         }
 
-        // Gets an item from the prespawn item list.
+        /// <summary>
+        ///     Gets an item from the inventory item list.   
+        /// </summary>
+        /// <param name="itemName">The name of the item.</param>
+        /// <returns>The GameObject of the item.</returns>
         public GameObject GetInventoryItem(string itemName)
         {
             for (int i = 0; i < InventoryItems.GetCount(); i++)
@@ -985,7 +1070,11 @@ namespace BluePrinceArchipelago.Items
             return null;
         }
 
-        // Gets an item that the player has picked up.
+        /// <summary>
+        ///     Gets an item that the player has picked up.
+        /// </summary>
+        /// <param name="itemName">The name of the item.</param>
+        /// <returns>The GameObject of the item.</returns>
         public GameObject GetPickedUpItem(string itemName)
         {
             for (int i = 0; i < PickedUp.GetCount(); i++)
@@ -1002,7 +1091,9 @@ namespace BluePrinceArchipelago.Items
             return null;
         }
 
-        // Makes the player lose a random item if they have an item. 
+        /// <summary>
+        ///     Makes the player lose a random item if they have an item.    
+        /// </summary>
         public void LoseRandomItem()
         {
             //We don't care if this fails, since it's a trap, and I'm too lazy to handle the edgecase where you are not in a run, and you spawn with an item.
@@ -1015,6 +1106,14 @@ namespace BluePrinceArchipelago.Items
         }
     }
 
+
+    /// <summary>
+    ///     A class template for handling the item in a mod context.
+    /// </summary>
+    /// <param name="name">The Name of the item</param>
+    /// <param name="gameObject">The GameObject of the item.</param>
+    /// <param name="isUnlocked">If the item is Unlocked.</param>
+    /// <param name="count">The number of the item in the pool.</param>
     public class ModItem(string name, GameObject gameObject, bool isUnlocked, int count = 1)
     {
         private string _Name = name;
@@ -1043,6 +1142,9 @@ namespace BluePrinceArchipelago.Items
             set { _IsUnique = value; }
         }
 
+        /// <summary>
+        ///     Handles adding the item to the player inventory.
+        /// </summary>
         public virtual void AddItemToInventory()
         {
             // Put out an error if this method was not properly overriden. There should be no base moditems.
@@ -1050,7 +1152,14 @@ namespace BluePrinceArchipelago.Items
         }
     }
 
-    // Handles junk items.
+    /// <summary>
+    ///     A template for creating junk items for the mod. 
+    /// </summary>
+    /// <param name="name">The name of the item</param>
+    /// <param name="gameObject">The gameobject of the item. Usually Null.</param>
+    /// <param name="isUnlocked">If the item is unlocked.</param>
+    /// <param name="itemType">The type of the Junk Item.</param>
+    /// <param name="count">The count of the junk item.</param>
     public class JunkItem(string name, GameObject gameObject, bool isUnlocked, string itemType, int count = 1) : ModItem(name, gameObject, isUnlocked)
     {
 
@@ -1124,6 +1233,11 @@ namespace BluePrinceArchipelago.Items
                 Logging.LogWarning($"{_ItemType} is an invalid type, or is not currently supported.");
             }
         }
+
+        /// <summary>
+        ///     Adjusts the number of gems the player has.
+        /// </summary>
+        /// <param name="count">The number to adjust by.</param>
         private void AdjustGems(int count = 1)
         {
             FsmInt AdjustmentAmount = ModInstance.GemManager.FindIntVariable("Gem Adjustment Amount");
@@ -1131,6 +1245,11 @@ namespace BluePrinceArchipelago.Items
             // I think sound would be neat since it's more noticeable.
             ModInstance.GemManager.SendEvent("Update with Sound");
         }
+
+        /// <summary>
+        ///     Adjusts the number of steps the player has.
+        /// </summary>
+        /// <param name="count">The number to adjust by.</param>
         private void AdjustSteps(int count = 1)
         {
             // change the adjustment amount.
@@ -1139,24 +1258,44 @@ namespace BluePrinceArchipelago.Items
             // Send the "Update" event and the step counter should update.
             ModInstance.StepManager.SendEvent("Update");
         }
+
+        /// <summary>
+        ///     Adjusts the number of steps the player has.
+        /// </summary>
+        /// <param name="count">The number to adjust by.</param>
         private void AdjustGold(int count = 1)
         {
             FsmInt AdjustmentAmount = ModInstance.GoldManager.FindIntVariable("Adjustment Amount");
             AdjustmentAmount.Value = AdjustmentAmount.Value + count;
             ModInstance.GoldManager.SendEvent("Update"); // Might need to be "Add Coins" instead.
         }
+
+        /// <summary>
+        ///     Adjusts the number of dice the player has.
+        /// </summary>
+        /// <param name="count">The number to adjust by.</param>
         private void AdjustDice(int count = 1)
         {
             FsmInt AdjustmentAmount = ModInstance.DiceManager.FindIntVariable("Adjustment Amount");
             AdjustmentAmount.Value = AdjustmentAmount.Value + count;
             ModInstance.DiceManager.SendEvent("Update");
         }
+
+        /// <summary>
+        ///     Adjusts the number of keys the player has.
+        /// </summary>
+        /// <param name="count">The number to adjust by.</param>
         private void AdjustKeys(int count = 1)
         {
             FsmInt AdjustmentAmount = ModInstance.KeyManager.FindIntVariable("Adjustment Amount");
             AdjustmentAmount.Value = AdjustmentAmount.Value + count;
             ModInstance.KeyManager.SendEvent("Update");
         }
+
+        /// <summary>
+        ///     Adjusts the amount of luck the player has.
+        /// </summary>
+        /// <param name="count">The number to adjust by.</param>
         private void AdjustLuck(int count = 1)
         {
             int luck = ModInstance.LuckManager.FindIntVariable("LUCK").Value;
@@ -1169,6 +1308,11 @@ namespace BluePrinceArchipelago.Items
                 ModInstance.LuckManager.FindIntVariable("Luck").Value = 0;
             }
         }
+
+        /// <summary>
+        ///     Adjusts the amount of stars the player has.
+        /// </summary>
+        /// <param name="count">The number to adjust by.</param>
         private void AdjustStars(int count = 1)
         {
             int totalStars = ModInstance.GlobalPersistentManager.GetIntVariable("TotalStars").Value;
@@ -1182,6 +1326,11 @@ namespace BluePrinceArchipelago.Items
             }
             ModInstance.StarManager.SendEvent("Update");
         }
+
+        /// <summary>
+        ///     Adjusts the ammount of allowance the player has.
+        /// </summary>
+        /// <param name="count">The number to adjust by.</param>
         private void AdjustAllowance(int count = 1)
         {
             int totalAllowance = ModInstance.GlobalPersistentManager.GetIntVariable("allowance").Value;
@@ -1196,6 +1345,15 @@ namespace BluePrinceArchipelago.Items
         }
     }
 
+
+    /// <summary>
+    ///     A template for creating permanent items (persistent junk items) for the mod.   
+    /// </summary>
+    /// <param name="name">The name of the item</param>
+    /// <param name="gameObject">The gameobject of the item. Usually Null.</param>
+    /// <param name="isUnlocked">If the item is unlocked.</param>
+    /// <param name="itemType">The type of the Permanent Item.</param>
+    /// <param name="count">The count of the permanent item.</param>
     public class PermanentItem(string name, GameObject gameObject, bool isUnlocked, string itemType, int count = 1) : ModItem(name, gameObject, isUnlocked)
     {
         private string _ItemType = itemType;
@@ -1247,6 +1405,8 @@ namespace BluePrinceArchipelago.Items
                 Logging.LogWarning($"{_ItemType} is an invalid type, or is not currently supported.");
             }
         }
+
+        /// <inheritdoc cref="JunkItem.AdjustGems(int)"/>
         private void AdjustGems(int count = 1)
         {
             FsmInt AdjustmentAmount = ModInstance.GemManager.FindIntVariable("Gem Adjustment Amount");
@@ -1254,6 +1414,7 @@ namespace BluePrinceArchipelago.Items
             // I think sound would be neat since it's more noticeable.
             ModInstance.GemManager.SendEvent("Update with Sound");
         }
+        /// <inheritdoc cref="JunkItem.AdjustSteps(int)"/>
         private void AdjustSteps(int count = 1)
         {
             // change the adjustment amount.
@@ -1262,26 +1423,28 @@ namespace BluePrinceArchipelago.Items
             // Send the "Update" event and the step counter should update.
             ModInstance.StepManager.SendEvent("Update");
         }
-        //Todo replace with allowance.
+        /// <inheritdoc cref="JunkItem.AdjustGold(int)"/>
         private void AdjustGold(int count = 1)
         {
             FsmInt AdjustmentAmount = ModInstance.GoldManager.FindIntVariable("Adjustment Amount");
             AdjustmentAmount.Value = AdjustmentAmount.Value + (UnlockedCount * count);
             ModInstance.GoldManager.SendEvent("Update"); // Might need to be "Add Coins" instead.
         }
-        //Todo replace with allowance.
+        /// <inheritdoc cref="JunkItem.AdjustDice(int)"/>
         private void AdjustDice(int count = 1)
         {
             FsmInt AdjustmentAmount = ModInstance.DiceManager.FindIntVariable("Adjustment Amount");
             AdjustmentAmount.Value = AdjustmentAmount.Value + (UnlockedCount * count);
             ModInstance.DiceManager.SendEvent("Update");
         }
+        /// <inheritdoc cref="JunkItem.AdjustKeys(int)"/>
         private void AdjustKeys(int count = 1)
         {
             FsmInt AdjustmentAmount = ModInstance.KeyManager.FindIntVariable("Adjustment Amount");
             AdjustmentAmount.Value = AdjustmentAmount.Value + (UnlockedCount * count);
             ModInstance.KeyManager.SendEvent("Update");
         }
+        /// <inheritdoc cref="JunkItem.AdjustLuck(int)"/>
         private void AdjustLuck(int count = 1)
         {
             int luck = ModInstance.LuckManager.FindIntVariable("LUCK").Value;
@@ -1295,7 +1458,16 @@ namespace BluePrinceArchipelago.Items
             }
         }
     }
-    public class ProgressiveItems(string name, GameObject gameObject, bool isUnlocked, int count = 0, bool isPreSpawn = true) : ModItem(name, gameObject, isUnlocked)
+
+    /// <summary>
+    ///     A template for Grouped Items (multiple similar items).
+    /// </summary>
+    /// <param name="name">The item name</param>
+    /// <param name="gameObject">The GameObject of the item</param>
+    /// <param name="isUnlocked">If the item is unlocked.</param>
+    /// <param name="count">The number of grouped items</param>
+    /// <param name="isPreSpawn">If the item is in the prespawn pool.</param>
+    public class GroupedItems(string name, GameObject gameObject, bool isUnlocked, int count = 0, bool isPreSpawn = true) : ModItem(name, gameObject, isUnlocked)
     {
         private int _Count = count;
         public new int Count
@@ -1325,8 +1497,12 @@ namespace BluePrinceArchipelago.Items
             }
         }
     }
-    // Controls the upgrade disks. Disks should persist accross days.
-    public class UpgradeDisks(GameObject gameObject) : ProgressiveItems("UPGRADE DISK", gameObject, false, 16, true)
+
+    /// <summary>
+    ///     A Handler for all the Upgrade disks and their associated functions. Upgrade Disks persist across days.
+    /// </summary>
+    /// <param name="gameObject"></param>
+    public class UpgradeDisks(GameObject gameObject) : GroupedItems("UPGRADE DISK", gameObject, false, 16, true)
     {
         public new List<string> Locations = ["ARCHIVES", "TRADING POST DYNAMITE", "TOMB", "COMMISSARY", "FOUNDATION", "FREEZER", "GARAGE", "GREAT HALL", "LOST AND FOUND", "HER LADYSHIPS CHAMBER", "MECHANARIUM", "MORNING ROOM", "OFFICE", "TRADING POST TRADE", "VAULT", "ABANDONED MINE"];
         public static List<GameObject> YouFoundObjects = new List<GameObject>();
@@ -1334,6 +1510,11 @@ namespace BluePrinceArchipelago.Items
         public List<string> UsedVariables = ["Upgrade Disc - Archives", "Upgrade Disc - Bootleg", "Upgrade Disc - Cloister", "Upgrade Disc - Commissary", "Upgrade Disc - Foundation", "Upgrade Disc - Freezer", "Upgrade Disc - Garage", "Upgrade Disc - Great Hall", "Upgrade Disc - LostFound", "Upgrade Disc - Master Bedroom", "Upgrade Disc - Mechanarium", "Upgrade Disc - Morning Room", "Upgrade Disc - Office", "Upgrade Disc - Shop", "Upgrade Disc - Tomb", "Upgrade Disc - Torch Room"];
         public new GameObject GameObj = gameObject;
 
+        /// <summary>
+        ///     Unlocks an upgrade disk location if it exists and hasn't already been found.
+        /// </summary>
+        /// <param name="locationName">The name of the location.</param>
+        /// <returns>If the location was unlocked.</returns>
         public bool UnlockLocationIfExists(string locationName) {
             foreach (string location in Locations) {
                 string lowlocation = location.ToLower().Replace("ladyships", "ladyship\'s").Replace("and ", "& ");
@@ -1341,12 +1522,16 @@ namespace BluePrinceArchipelago.Items
                     if (!FoundLocations.Contains(location))
                     {
                         FoundLocations.Add(location);
-                    }
+                        return true;
+                    } 
                 }
             }
             return false;
         }
-        // Handles adding unlocked upgrade disks to the the players inventory until they are used.
+
+        /// <summary>
+        ///     Handles adding unlocked upgrade disks to the the players inventory until they are used.
+        /// </summary>
         public void StartOfDay() {
             int i = 0;
             // Skip this Start of Day if it's a reconnect from crash or quit.
@@ -1377,12 +1562,19 @@ namespace BluePrinceArchipelago.Items
             }
         }
 
-        // Handles the pickup of the Upgrade Disk. The Vanilla code handles the rest.
+        /// <summary>
+        ///     Handles the pickup of the Upgrade Disk. The Vanilla code handles the rest.
+        /// </summary>
         public void OnPickup() {
             string roomname = ModInstance.RoomText.GetStringVariable("Current Room").Value;
             roomname = roomname.ToUpper().Replace("'", "").Replace("POST", "POST DYNAMITE").Replace(" AND", " &"); // HLC, TP Dynamite, and Lost & Found name fix
             OnFind(roomname);
         }
+
+        /// <summary>
+        ///     Handles setting the game state when an upgrade disk is used.
+        /// </summary>
+        /// <param name="upgradeid">The Id of the upgrade disk.</param>
         public void OnUsed(int upgradeid) {
             Logging.LogWarning($"Upgrade With ID {upgradeid} used.");
             if (RecievedItems.Count > UsedLocations.Count)
@@ -1399,7 +1591,10 @@ namespace BluePrinceArchipelago.Items
             }
         }
 
-        // Sends the location for the found upgrade disk.
+        /// <summary>
+        ///     Sends the location for the found upgrade disk.   
+        /// </summary>
+        /// <param name="location">The name of the location.</param>
         private void OnFind(string location)
         {
             location = location.Replace("LADYSHIPS", "LADYSHIP's").Replace(" &", " AND");
@@ -1411,6 +1606,11 @@ namespace BluePrinceArchipelago.Items
             }
         }
 
+        /// <summary>
+        ///     A sanity check for despawning Upgrade disks that shouldn't be spawned.
+        /// </summary>
+        /// <param name="location">The location</param>
+        /// <param name="spawnedObj">The spawned object.</param>
         public void OnSpawn(string location, GameObject spawnedObj) {
             if (spawnedObj != null) {
                 if (FoundLocations.Contains(location.ToUpper())) {
@@ -1423,6 +1623,10 @@ namespace BluePrinceArchipelago.Items
             Logging.LogWarning($"Unable to despawn Upgrade Disk in {location}, spawnedObj does not exist.");
         }
 
+        /// <summary>
+        ///     Handles adding an upgrade disk to the inventory.
+        /// </summary>
+        /// <param name="location">The location of the upgrade disk being added.</param>
         public void AddItemToInventory(string location)
         {
             Logging.LogWarning("Attempting To Add Upgrade Disk to Inventory.");
@@ -1452,14 +1656,19 @@ namespace BluePrinceArchipelago.Items
     }
 
     //TODO Later for a later goal. The locations they are found at is different from where they can be used. Should not persist across days
-    public class SanctumKeys(string name, GameObject gameObject, int count = 0) : ProgressiveItems(name, gameObject, false, 1, true)
+    public class SanctumKeys(string name, GameObject gameObject, int count = 0) : GroupedItems(name, gameObject, false, 1, true)
     {
 
     }
 
+    /// <summary>
+    ///     A Class for handling the intial registration of items.
+    /// </summary>
     public static class RegisterItems
     {
-
+        /// <summary>
+        ///     Registers all of the Unique items that the mod tracks and uses.
+        /// </summary>
         public static void Register()
         {
             //Unique Items
@@ -1586,6 +1795,9 @@ namespace BluePrinceArchipelago.Items
             Plugin.ModItemManager.AddTrap(new LoseItemTrap("Trap Lose Item", "Lose Item"));
         }
 
+        /// <summary>
+        ///     Reloads the GameObjects of all registered items (usually on scene transitions/reloads).
+        /// </summary>
         public static void  ReloadGameObjects() {
             foreach (UniqueItem item in ModItemManager.UniqueItemList) {
                 string name = GetObjName(item.Name);
@@ -1596,6 +1808,12 @@ namespace BluePrinceArchipelago.Items
                 item.GameObj = gameObj;
             }
         }
+
+        /// <summary>
+        ///     Gets the objectname of items where it doesn't match their name.
+        /// </summary>
+        /// <param name="name">The name of the item.</param>
+        /// <returns></returns>
         private static string GetObjName(string name) {
             switch (name)
             {

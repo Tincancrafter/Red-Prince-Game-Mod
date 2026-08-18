@@ -106,7 +106,7 @@ namespace BluePrinceArchipelago.Items
                 }
             }
 
-            FSMEventHandler.AddFSMEvent(name, this);
+            FSMEventHandler.AddItemFSMEvent(name, this);
             if (IsCommissary)
             {
                 CommissaryEvent = FSMEventHandler.AddBuyFSMEvent("Commissary: Bought " + name, this).Event;
