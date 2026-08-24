@@ -2,6 +2,8 @@
 */.vs/*
 BluePrinceArchipelago/obj/*
 BluePrinceArchipelago/bin/*
+!BluePrinceArchipelago/bin/Release/
+!BluePrinceArchipelago/bin/Release/BluePrinceArchipelago-1.0.1.zip
 BluePrinceArchipelago/BluePrinceArchipelago.csproj.user
 *.csproj.user
 Directory.Build.props
