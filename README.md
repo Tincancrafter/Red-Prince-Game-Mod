@@ -80,7 +80,7 @@ This is the development repository for the Archipelago mod for the 2025 roguelit
 ### Credits
 
 - [Yascob99](https://github.com/Yascob99), repository owner and lead developer
-  of the [original Blue Prince game mod](https://github.com/Yascob99/BluePrinceArchipelago).
+  of the [Yascob99/BluePrinceArchipelago](https://github.com/Yascob99/BluePrinceArchipelago).
 - [BatmenzDW](https://github.com/BatmenzDW), primary author of the
   [APWorld source](https://github.com/BatmenzDW/Archipelago/tree/main/worlds/blueprince)
   and a major contributor to the original game mod.
@@ -88,9 +88,9 @@ This is the development repository for the Archipelago mod for the 2025 roguelit
   [APWorld development, logic, and integration work](https://github.com/deefdragon/Archipelago/tree/main/worlds/blueprince).
 - [shavnir](https://github.com/shavnir), for code, build tooling, item/list
   handling, and installation documentation in the
-  [original game-mod repository](https://github.com/Yascob99/BluePrinceArchipelago).
+  [Yascob99/BluePrinceArchipelago](https://github.com/Yascob99/BluePrinceArchipelago).
 - [Rooby-Roo](https://github.com/Rooby-Roo), for documentation contributions to
-  the [original game-mod repository](https://github.com/Yascob99/BluePrinceArchipelago).
+  the [Yascob99/BluePrinceArchipelago](https://github.com/Yascob99/BluePrinceArchipelago).
 - ChaseoQueso, for the initial item code and custom Archipelago swirl asset.
 - Mac, for work on the mod and APWorld.
 - Zygan, for custom art assets.
