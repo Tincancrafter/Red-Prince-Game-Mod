@@ -1,5 +1,12 @@
 <!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
 <a id="readme-top"></a>
+
+## Project Repositories
+
+- [Releases and Setup](https://github.com/Tincancrafter/Red-Prince-Releases)
+- [APWorld Source](https://github.com/Tincancrafter/Red-Prince-APWorld)
+- **[Game Mod Source](https://github.com/Tincancrafter/Red-Prince-Game-Mod)** (you are here)
+
 <!--
 *** Thanks for checking out the Best-README-Template. If you have a suggestion
 *** that would make this better, please fork the repo and create a pull request
@@ -34,12 +41,6 @@
   </a> -->
 
 <h3 align="center">Red Prince Archipelago</h3>
-
-## Project Repositories
-
-- [Releases and Setup](https://github.com/Tincancrafter/Red-Prince-Releases)
-- [APWorld Source](https://github.com/Tincancrafter/Red-Prince-APWorld)
-- **[Game Mod Source](https://github.com/Tincancrafter/Red-Prince-Game-Mod)** (you are here)
 
 This repository contains only the source for the Red Prince BepInEx game mod.
 </div>
