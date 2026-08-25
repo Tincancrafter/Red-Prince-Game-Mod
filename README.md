@@ -33,7 +33,13 @@
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a> -->
 
-<h3 align="center">Blue Prince Archipelago</h3>
+<h3 align="center">Red Prince Archipelago</h3>
+
+This repository contains only the source for the Red Prince BepInEx game mod.
+The matching APWorld source is maintained in
+[Red-Prince-APWorld](https://github.com/Tincancrafter/Red-Prince-APWorld), and
+player downloads are published by
+[Red-Prince-Releases](https://github.com/Tincancrafter/Red-Prince-Releases/releases).
 </div>
 
 
@@ -66,15 +72,25 @@
 ## About The Project
 
 
-This is an in development Archipelago mod for the 2025 roguelite puzzle game Blue Prince. **Please note that the mod is not currently playable yet** and is still being developed.
+This is the development repository for the Archipelago mod for the 2025 roguelite puzzle game Blue Prince. The released plugin is playable; this document focuses on building and contributing to the mod.
 
-Special Thanks to: 
-- ChaseoQueso for the inital item code and the custom archipelago swirly asset.
-- Mac for helping out on the mod and APworld
-- deefdragon and BatemenzDW for their work on the APworld.
-- Shavnir for helping out with the mod.
-- Zygan for some custom art assets.
-- The Silksong/HK community for a lot of great tools which made modding so much easier.
+### Credits
+
+- [Yascob99](https://github.com/Yascob99), repository owner and lead developer
+  of the Blue Prince game mod.
+- [BatmenzDW](https://github.com/BatmenzDW), primary APWorld author and a major
+  contributor to the game mod.
+- [deefdragon](https://github.com/deefdragon), for APWorld development, logic,
+  and integration work.
+- [shavnir](https://github.com/shavnir), for game-mod code, build tooling,
+  item/list handling, and installation documentation.
+- [Rooby-Roo](https://github.com/Rooby-Roo), for documentation contributions.
+- ChaseoQueso, for the initial item code and custom Archipelago swirl asset.
+- Mac, for work on the mod and APWorld.
+- Zygan, for custom art assets.
+- [Emmet-is-a-Birb](https://github.com/Emmet-is-a-Birb), author of the related
+  standalone [Blue Prince Manual integration](https://github.com/Emmet-is-a-Birb/BluePrince_Manual).
+- The Silksong and Hollow Knight communities, for the tools that made this mod possible.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -97,7 +113,7 @@ Please make sure you have Bepinex 6 installed as we need the IL2CPP support.
 * Extract the files inside the  Blue Prince folder (Steam default of `C:\Program Files (x86)\Steam\steamapps\common\Blue Prince` )
 2. Clone the repo
    ```sh
-   git clone https://github.com/Yascob99/BluePrinceArchipelago.git
+   git clone https://github.com/Yascob99/RedPrinceArchipelago.git
    ```
 3. Change git remote url to avoid accidental pushes to base project or check out <a href=#contributing>Contributing</a> if you want to help contribute instead.
    ```sh
@@ -122,7 +138,7 @@ Please make sure you have Bepinex 6 installed as we need the IL2CPP support.
 	</PropertyGroup>
 </Project>
 ```
-7. After you have built for the first time you will need to copy the Archipelago dll into the BluePrinceArchipelago folder.  This will appear by default in `C:\Users\USERNAME\.nuget\packages\archipelago.multiclient.net\6.7.1\lib\net6.0\Archipelago.MultiClient.Net.dll`.  Copy this into the Blue Prince\BepInEx\plugins\BluePrinceArchipelago folder
+7. After you have built for the first time you will need to copy the Archipelago dll into the RedPrinceArchipelago folder.  This will appear by default in `C:\Users\USERNAME\.nuget\packages\archipelago.multiclient.net\6.7.1\lib\net6.0\Archipelago.MultiClient.Net.dll`.  Copy this into the Blue Prince\BepInEx\plugins\RedPrinceArchipelago folder
 
 8. After Building the mod you may need to copy the apprefabs file from the assets folder in to the root of the mods install. I have tried getting it to copy on building but haven't been able to get it working correctly.
 
@@ -320,21 +336,21 @@ If you have a suggestion that would make this better, please fork the repo and c
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT. See `LICENSE.MD` for more information.
+Distributed under the MIT License. See [`../LICENSE`](../LICENSE) for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/Yascob99/BluePrinceArchipelago.svg?style=for-the-badge
-[contributors-url]: https://github.com/Yascob99/BluePrinceArchipelago/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/Yascob99/BluePrinceArchipelago.svg?style=for-the-badge
-[forks-url]: https://github.com/Yascob99/BluePrinceArchipelago/network/members
-[stars-shield]: https://img.shields.io/github/stars/Yascob99/BluePrinceArchipelago.svg?style=for-the-badge
-[stars-url]: https://github.com/Yascob99/BluePrinceArchipelago/stargazers
-[issues-shield]: https://img.shields.io/github/issues/Yascob99/BluePrinceArchipelago.svg?style=for-the-badge
-[issues-url]: https://github.com/Yascob99/BluePrinceArchipelago/issues
-[license-shield]: https://img.shields.io/github/license/Yascob99/BluePrinceArchipelago.svg?style=for-the-badge
-[license-url]: https://github.com/Yascob99/BluePrinceArchipelago/blob/main/LISCENSE.md
+[contributors-shield]: https://img.shields.io/github/contributors/Yascob99/RedPrinceArchipelago.svg?style=for-the-badge
+[contributors-url]: https://github.com/Yascob99/RedPrinceArchipelago/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/Yascob99/RedPrinceArchipelago.svg?style=for-the-badge
+[forks-url]: https://github.com/Yascob99/RedPrinceArchipelago/network/members
+[stars-shield]: https://img.shields.io/github/stars/Yascob99/RedPrinceArchipelago.svg?style=for-the-badge
+[stars-url]: https://github.com/Yascob99/RedPrinceArchipelago/stargazers
+[issues-shield]: https://img.shields.io/github/issues/Yascob99/RedPrinceArchipelago.svg?style=for-the-badge
+[issues-url]: https://github.com/Yascob99/RedPrinceArchipelago/issues
+[license-shield]: https://img.shields.io/github/license/Yascob99/RedPrinceArchipelago.svg?style=for-the-badge
+[license-url]: https://github.com/Yascob99/RedPrinceArchipelago/blob/main/LISCENSE.md
 <!-- Shields.io badges. You can a comprehensive list with many more badges at: https://github.com/inttter/md-badges -->

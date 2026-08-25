@@ -1,0 +1,141 @@
+using BluePrince;
+using RedPrinceArchipelago.Utils;
+using HarmonyLib;
+using HutongGames.PlayMaker;
+using HutongGames.PlayMaker.Actions;
+using Il2CppSystem.Runtime.Remoting.Messaging;
+using System;
+using UnityEngine;
+
+namespace RedPrinceArchipelago.Patches
+{
+    public class ItemPatches
+    {
+        [HarmonyPatch(typeof(PmtSpawn), "OnEnter")]
+        [HarmonyPostfix]
+        static void PostFix(PmtSpawn __instance, ref GameObject __state)
+        {
+            if (__instance != null)
+            {
+                Logging.Log("PmtSpawn OnEnter Postfix called.");
+                GameObject obj = __instance.gameObject?.value;
+                string poolName = __instance.poolName?.value;
+                GameObject transformObj = __instance.spawnTransform?.value;
+                GameObject spawnedObj = __instance.spawnedGameObject?.value;
+                // Unsure why this results in a null object in some instances.
+                if (poolName == "Pickup" && obj != null)
+                {
+                    Plugin.UniqueItemManager.OnItemSpawn(obj, poolName, transformObj, spawnedObj);
+                    //Can theoritically replace the game object spawned by replacing the __instance.gameObject.
+                }
+            }
+
+            if (__state != null)
+            {
+                Logging.Log("PmtSpawn OnEnter Postfix calling OnAfterRoomSpawned.");
+                ModInstance.OnAfterRoomSpawned(__state);
+            }
+        }
+        [HarmonyPatch(typeof(PmtSpawn), "OnEnter")]
+        [HarmonyPrefix]
+        static void PreFix(PmtSpawn __instance, ref GameObject __state) {
+            GameObject obj = __instance.gameObject?.value;
+            string poolName = __instance.poolName?.value;
+            GameObject transformObj = __instance.spawnTransform?.value;
+            GameObject spawnedObj = __instance.spawnedGameObject?.value;
+            if (poolName == "Rooms")
+            {
+                ModInstance.OnRoomSpawned(obj, transformObj);
+                __state = obj; // Store the room GameObject in __state to be used in the Postfix
+            }
+            else
+            {
+                ModInstance.OnOtherSpawn(obj, poolName, transformObj);
+            }
+        }
+    }
+    public class RoomPatches {
+        [HarmonyPatch(typeof(RoomDraftHelper), nameof(RoomDraftHelper.StartDraft))]
+        [HarmonyPostfix]
+        static void PostFix()
+        {
+            ModInstance.OnDraftInitialize();
+        }
+        [HarmonyPatch(typeof(RoomDraftHelper), nameof(RoomDraftHelper.StartDraft))]
+        [HarmonyPrefix]
+        static void Prefix() {
+            ModInstance.OnDraftBeforeInitialize();
+        }
+
+    }
+    public class EventPatches {
+
+        public static int depth = 0;
+
+        [HarmonyPatch(typeof(SendEvent), "OnEnter")]
+        [HarmonyPrefix]
+        static void PreFix(SendEvent __instance)
+        {
+            try
+            {
+                FsmEventTarget target = __instance.eventTarget;
+                FsmEvent sendEvent = __instance.sendEvent;
+                string targetType = target == null ? "" : target.target.ToString();
+                DelayedEvent delayedEvent = __instance.delayedEvent;
+                FsmFloat delay = __instance.delay;
+                bool isDelayed = false;
+                if (delay.value > 0) {
+                    isDelayed = true;
+                }
+                ModInstance.OnEventSend(target, sendEvent, delay, delayedEvent, __instance.owner, isDelayed);
+            }
+            catch (Exception e)
+            {
+                Logging.LogError(e, "EventPatches");
+            }
+        }
+
+        // Should be called after all the 
+        [HarmonyPatch(typeof(StatsLogger), "BeginDay", [typeof(int)])]
+        [HarmonyPostfix]
+        static void PostFix(int dayNum) { 
+            ModInstance.OnDayStart(dayNum);
+        }
+        [HarmonyPatch(typeof(StatsLogger), "Record_Event", [typeof(EventID), typeof(EventFilter)])]
+        [HarmonyPostfix]
+        static void RecordEventPostFix(EventID id)
+        {
+            ModInstance.OnRecordEvent(id);
+        }
+
+        [HarmonyPatch(typeof(StatsLogger), nameof(StatsLogger.EndDay))]
+        [HarmonyPostfix]
+        static void EndDayPostfix(StatsLogger __instance)
+        {
+            Logging.Log("StatsLogger EndDay Postfix called.", "DeathLink");
+            ModInstance.OnDayEnd();
+        }
+
+        [HarmonyPatch(typeof(RoomDraftHelper), nameof(RoomDraftHelper.PerformValidation))]
+        [HarmonyPrefix]
+        static bool PerformValidationPreFix(RoomDraftHelper __instance) {
+            // Run the PerformValidation function once, but run it in a try catch so it's error doesn't break stuff too much.
+            if (EventPatches.depth == 0) {
+                EventPatches.depth++;
+                try
+                {
+                    __instance.PerformValidation();
+                    EventPatches.depth = 0;
+                }
+                catch
+                {
+                    // Couldn't My Logging Methods so using the Bepinex defualt Logging.
+                    Plugin.Instance.Log.LogWarning($"[DraftCode] DraftHelper Validation ran into an error and could not run to completion.");
+                    EventPatches.depth = 0;
+                }
+                return false;
+            }
+            return true;
+        }
+    }
+}
