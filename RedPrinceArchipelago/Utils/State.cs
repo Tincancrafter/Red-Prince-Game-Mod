@@ -12,7 +12,8 @@ namespace RedPrinceArchipelago.Utils
     public static class State
     {
         public static string PluginPath => Paths.PluginPath;
-        public static string ModFolder => Path.Combine(PluginPath, Plugin.PluginName);
+        public static string ModFolder => Path.Combine(PluginPath, Plugin.PluginFolderName);
+        private static string LegacyModFolder => Path.Combine(PluginPath, Plugin.PluginName);
 
         public const string SessionFolder = "SessionData";
 
@@ -36,6 +37,7 @@ namespace RedPrinceArchipelago.Utils
 
         public static void Initialize()
         {
+            MigrateLegacySessionData();
             if (!Directory.Exists(Path.Combine(ModFolder, SessionFolder))) {
                 Directory.CreateDirectory(Path.Combine(ModFolder, SessionFolder));
             }
@@ -43,6 +45,40 @@ namespace RedPrinceArchipelago.Utils
             InitializeSessionData();
             InitializeServerDetails();
             InitializeLocationDict();
+        }
+
+        private static void MigrateLegacySessionData()
+        {
+            string legacySessionFolder = Path.Combine(LegacyModFolder, SessionFolder);
+            if (!Directory.Exists(legacySessionFolder))
+            {
+                return;
+            }
+
+            string sessionFolder = Path.Combine(ModFolder, SessionFolder);
+            Directory.CreateDirectory(sessionFolder);
+
+            foreach (string sourcePath in Directory.GetFiles(legacySessionFolder))
+            {
+                string destinationPath = Path.Combine(sessionFolder, Path.GetFileName(sourcePath));
+                if (!File.Exists(destinationPath))
+                {
+                    File.Move(sourcePath, destinationPath);
+                }
+                else
+                {
+                    File.Delete(sourcePath);
+                }
+            }
+
+            if (Directory.GetFileSystemEntries(legacySessionFolder).Length == 0)
+            {
+                Directory.Delete(legacySessionFolder);
+            }
+            if (Directory.Exists(LegacyModFolder) && Directory.GetFileSystemEntries(LegacyModFolder).Length == 0)
+            {
+                Directory.Delete(LegacyModFolder);
+            }
         }
 
         public static void UpdateAll() {
