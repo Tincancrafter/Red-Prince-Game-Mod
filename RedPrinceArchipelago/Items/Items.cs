@@ -1001,7 +1001,19 @@ namespace RedPrinceArchipelago.Items
                 permanentItem.IsUnlocked = true;
                 permanentItem.UnlockedCount += 1;
             }
-            else if ((item = GetJunkItem(itemInfo.ItemName)) != null || (item = GetUniqueItem(itemInfo.ItemName)) != null)
+            else if ((item = GetUniqueItem(itemInfo.ItemName)) is UniqueItem uniqueItem)
+            {
+                if (uniqueItem.SanityType == ItemSanityType.Workshop)
+                {
+                    uniqueItem.IsUnlocked = true;
+                    Logging.Log($"Unlocked {uniqueItem.Name} recipe.", "Items");
+                    return;
+                }
+
+                uniqueItem.AddItemToInventory();
+                return;
+            }
+            else if ((item = GetJunkItem(itemInfo.ItemName)) != null)
             {
                 item.AddItemToInventory();
                 return;
