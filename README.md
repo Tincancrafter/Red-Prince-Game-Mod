@@ -35,11 +35,13 @@
 
 <h3 align="center">Red Prince Archipelago</h3>
 
+## Project Repositories
+
+- [Releases and Setup](https://github.com/Tincancrafter/Red-Prince-Releases)
+- [APWorld Source](https://github.com/Tincancrafter/Red-Prince-APWorld)
+- **[Game Mod Source](https://github.com/Tincancrafter/Red-Prince-Game-Mod)** (you are here)
+
 This repository contains only the source for the Red Prince BepInEx game mod.
-The matching APWorld source is maintained in
-[Red-Prince-APWorld](https://github.com/Tincancrafter/Red-Prince-APWorld), and
-player downloads are published by
-[Red-Prince-Releases](https://github.com/Tincancrafter/Red-Prince-Releases/releases).
 </div>
 
 
