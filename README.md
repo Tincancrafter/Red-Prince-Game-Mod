@@ -113,7 +113,7 @@ Please make sure you have Bepinex 6 installed as we need the IL2CPP support.
 * Extract the files inside the  Blue Prince folder (Steam default of `C:\Program Files (x86)\Steam\steamapps\common\Blue Prince` )
 2. Clone the repo
    ```sh
-   git clone https://github.com/Yascob99/RedPrinceArchipelago.git
+   git clone https://github.com/Tincancrafter/Red-Prince-Game-Mod.git
    ```
 3. Change git remote url to avoid accidental pushes to base project or check out <a href=#contributing>Contributing</a> if you want to help contribute instead.
    ```sh
@@ -336,21 +336,21 @@ If you have a suggestion that would make this better, please fork the repo and c
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See [`../LICENSE`](../LICENSE) for more information.
+Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/Yascob99/RedPrinceArchipelago.svg?style=for-the-badge
-[contributors-url]: https://github.com/Yascob99/RedPrinceArchipelago/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/Yascob99/RedPrinceArchipelago.svg?style=for-the-badge
-[forks-url]: https://github.com/Yascob99/RedPrinceArchipelago/network/members
-[stars-shield]: https://img.shields.io/github/stars/Yascob99/RedPrinceArchipelago.svg?style=for-the-badge
-[stars-url]: https://github.com/Yascob99/RedPrinceArchipelago/stargazers
-[issues-shield]: https://img.shields.io/github/issues/Yascob99/RedPrinceArchipelago.svg?style=for-the-badge
-[issues-url]: https://github.com/Yascob99/RedPrinceArchipelago/issues
-[license-shield]: https://img.shields.io/github/license/Yascob99/RedPrinceArchipelago.svg?style=for-the-badge
-[license-url]: https://github.com/Yascob99/RedPrinceArchipelago/blob/main/LISCENSE.md
+[contributors-shield]: https://img.shields.io/github/contributors/Tincancrafter/Red-Prince-Game-Mod.svg?style=for-the-badge
+[contributors-url]: https://github.com/Tincancrafter/Red-Prince-Game-Mod/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/Tincancrafter/Red-Prince-Game-Mod.svg?style=for-the-badge
+[forks-url]: https://github.com/Tincancrafter/Red-Prince-Game-Mod/network/members
+[stars-shield]: https://img.shields.io/github/stars/Tincancrafter/Red-Prince-Game-Mod.svg?style=for-the-badge
+[stars-url]: https://github.com/Tincancrafter/Red-Prince-Game-Mod/stargazers
+[issues-shield]: https://img.shields.io/github/issues/Tincancrafter/Red-Prince-Game-Mod.svg?style=for-the-badge
+[issues-url]: https://github.com/Tincancrafter/Red-Prince-Game-Mod/issues
+[license-shield]: https://img.shields.io/github/license/Tincancrafter/Red-Prince-Game-Mod.svg?style=for-the-badge
+[license-url]: https://github.com/Tincancrafter/Red-Prince-Game-Mod/blob/main/LICENSE
 <!-- Shields.io badges. You can a comprehensive list with many more badges at: https://github.com/inttter/md-badges -->
