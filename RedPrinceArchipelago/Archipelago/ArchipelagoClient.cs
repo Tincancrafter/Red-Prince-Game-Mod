@@ -162,12 +162,14 @@ public class ArchipelagoClient
                 HandleConnectResult(loginResult);
                 _AttemptingConnection = false;
             }
-            // Player Connected to wrong slot (Probably)
+            // A different seed is being started, so discard the previous run's cached state.
             else
             {
-                ArchipelagoConsole.LogMessage($"SlotData doesn't match expected slot. If you didn't finish the last run please run /ResetData and reconnect or connect to the correct server.");
-
-                HandleConnectResult(new LoginFailure($"Unexpected LoginResult type when connecting to Archipelago: {loginResult}"));
+                ArchipelagoConsole.LogMessage("Connected to a new seed. Resetting data from the previous run automatically.");
+                State.Reset();
+                State.Initialize();
+                Reconnected = false;
+                HandleConnectResult(loginResult);
                 _AttemptingConnection = false;
             }
         }
