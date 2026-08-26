@@ -127,10 +127,10 @@ namespace RedPrinceArchipelago.Patches
                     __instance.PerformValidation();
                     EventPatches.depth = 0;
                 }
-                catch
+                catch (System.Exception exception)
                 {
                     // Couldn't My Logging Methods so using the Bepinex defualt Logging.
-                    Plugin.Instance.Log.LogWarning($"[DraftCode] DraftHelper Validation ran into an error and could not run to completion.");
+                    Plugin.Instance.Log.LogWarning($"[DraftCode] DraftHelper Validation ran into an error and could not run to completion: {exception}");
                     EventPatches.depth = 0;
                 }
                 return false;

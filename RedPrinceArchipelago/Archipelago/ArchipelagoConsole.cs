@@ -8,6 +8,9 @@ using StableNameDotNet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace RedPrinceArchipelago.Archipelago;
@@ -49,6 +52,12 @@ public static class ArchipelagoConsole
     private static bool ShowPassword;
     private static string ConnectionStatus = "Enter the server details for this slot.";
     private static bool ConnectionStatusIsError;
+    private static readonly HttpClient UpdateClient = new();
+    private static string UpdateButtonText = "Checking...";
+    private static string LatestReleaseUrl = "https://github.com/Tincancrafter/Red-Prince-Releases/releases/latest";
+    private static bool UpdateCheckComplete;
+    private static bool UpdateAvailable;
+    private static bool UpdateCheckRunning;
 
     /// <summary>
     ///     Unity Monobehaviour Awake()
@@ -56,6 +65,43 @@ public static class ArchipelagoConsole
     public static void Awake()
     {
         UpdateWindow();
+        CheckForUpdates();
+    }
+
+    private static async void CheckForUpdates()
+    {
+        if (UpdateCheckRunning) return;
+
+        UpdateCheckRunning = true;
+        UpdateCheckComplete = false;
+        UpdateButtonText = "Checking...";
+        try
+        {
+            using HttpRequestMessage request = new(HttpMethod.Get,
+                "https://api.github.com/repos/Tincancrafter/Red-Prince-Releases/releases/latest");
+            request.Headers.UserAgent.ParseAdd($"RedPrinceArchipelago/{Plugin.PluginVersion}");
+            using HttpResponseMessage response = await UpdateClient.SendAsync(request).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            JObject release = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+            string latestTag = release.Value<string>("tag_name")?.TrimStart('v', 'V') ?? Plugin.PluginVersion;
+            LatestReleaseUrl = release.Value<string>("html_url") ?? LatestReleaseUrl;
+
+            UpdateAvailable = Version.TryParse(latestTag, out Version latestVersion) &&
+                Version.TryParse(Plugin.PluginVersion, out Version installedVersion) &&
+                latestVersion > installedVersion;
+            UpdateButtonText = UpdateAvailable ? $"Update {latestTag}" : "Latest";
+            UpdateCheckComplete = true;
+        }
+        catch (Exception exception)
+        {
+            UpdateAvailable = false;
+            UpdateButtonText = "Retry update";
+            Logging.LogWarning($"Unable to check for plugin updates: {exception.Message}", "UpdateCheck");
+        }
+        finally
+        {
+            UpdateCheckRunning = false;
+        }
     }
 
     public static void ShowConnectionPrompt()
@@ -214,13 +260,41 @@ public static class ArchipelagoConsole
         float y = connectionPanel.y + padding;
         float contentWidth = connectionPanel.width - padding * 2f;
 
+        const float actionButtonWidth = 120f;
+        const float actionButtonGap = 8f;
+        float actionButtonsWidth = actionButtonWidth * 2f + actionButtonGap;
         GUI.Label(new Rect(x, y, contentWidth * 0.65f, rowHeight), "ARCHIPELAGO CONNECTION", headingStyle);
         statusStyle.normal.textColor = ArchipelagoClient.Authenticated
             ? new Color(0.45f, 0.9f, 0.55f)
             : ConnectionStatusIsError ? new Color(1f, 0.48f, 0.42f) : new Color(0.82f, 0.84f, 0.88f);
         string state = ArchipelagoClient.Authenticated ? "CONNECTED" : Plugin.ArchipelagoClient.IsAttemptingConnection ? "CONNECTING" : "DISCONNECTED";
         GUI.Label(new Rect(x + contentWidth * 0.65f, y, contentWidth * 0.35f, rowHeight), state, statusStyle);
-        y += rowHeight + 4f;
+        y += rowHeight + 6f;
+
+        GUI.Label(new Rect(x, y, contentWidth - actionButtonsWidth - actionButtonGap, rowHeight),
+            Plugin.ModDisplayInfo, fieldLabelStyle);
+        bool previousUpdateEnabled = GUI.enabled;
+        GUI.enabled = previousUpdateEnabled && (!UpdateCheckComplete || UpdateAvailable) && !UpdateCheckRunning;
+        if (GUI.Button(new Rect(x + contentWidth - actionButtonsWidth, y, actionButtonWidth, rowHeight), UpdateButtonText))
+        {
+            if (UpdateCheckComplete && UpdateAvailable)
+            {
+                Application.OpenURL(LatestReleaseUrl);
+            }
+            else
+            {
+                CheckForUpdates();
+            }
+        }
+        GUI.enabled = previousUpdateEnabled;
+        bool previousHeaderEnabled = GUI.enabled;
+        GUI.enabled = previousHeaderEnabled && (ArchipelagoClient.Authenticated || Plugin.ArchipelagoClient.IsAttemptingConnection);
+        if (GUI.Button(new Rect(x + contentWidth - actionButtonWidth, y, actionButtonWidth, rowHeight), "Disconnect"))
+        {
+            Plugin.ArchipelagoClient.DisconnectFromServer();
+        }
+        GUI.enabled = previousHeaderEnabled;
+        y += rowHeight + 8f;
 
         if (ArchipelagoClient.Authenticated)
         {
@@ -254,13 +328,20 @@ public static class ArchipelagoConsole
             TextFieldNames.Take(3).Contains(GUI.GetNameOfFocusedControl());
 
         bool previousEnabled = GUI.enabled;
-        GUI.enabled = previousEnabled && hasHost && hasSlot && !Plugin.ArchipelagoClient.IsAttemptingConnection;
+        bool attemptingConnection = Plugin.ArchipelagoClient.IsAttemptingConnection;
+        GUI.enabled = previousEnabled && (attemptingConnection || hasHost && hasSlot);
         bool connect = GUI.Button(new Rect(x + contentWidth - 120f, y, 120f, rowHeight),
-            Plugin.ArchipelagoClient.IsAttemptingConnection ? "Connecting..." : "Connect");
+            attemptingConnection ? "Cancel" : "Connect");
         GUI.enabled = previousEnabled;
 
         string helper = !hasHost ? "Enter a host and port." : !hasSlot ? "Enter the exact slot name." : ConnectionStatus;
         GUI.Label(new Rect(x, y, contentWidth - 130f, rowHeight), helper, fieldLabelStyle);
+        if (connect && attemptingConnection)
+        {
+            currentEvent.Use();
+            Plugin.ArchipelagoClient.DisconnectFromServer();
+            return;
+        }
         if ((connect || enterPressed) && hasHost && hasSlot && !Plugin.ArchipelagoClient.IsAttemptingConnection)
         {
             currentEvent.Use();
@@ -427,8 +508,8 @@ public static class ArchipelagoConsole
 
         float panelTop = Screen.height * 0.315f;
         float panelHeight = ArchipelagoClient.Authenticated
-            ? Math.Max(100f, Screen.height * 0.105f)
-            : Math.Max(205f, Screen.height * 0.225f);
+            ? Math.Max(130f, Screen.height * 0.14f)
+            : Math.Max(235f, Screen.height * 0.26f);
         connectionPanel = new Rect(Screen.width / 2f - width / 2f, panelTop, width, panelHeight);
 
         // Draw server command text field and button below the connection panel.

@@ -130,6 +130,21 @@ namespace RedPrinceArchipelago.Rooms
                         room = ForceRoomQueue[i];
                         if (room != null)
                         {
+                            bool dependenciesMet = true;
+                            foreach (Func<ModRoom, bool> dependency in room.Dependencies)
+                            {
+                                if (!dependency(room))
+                                {
+                                    dependenciesMet = false;
+                                    break;
+                                }
+                            }
+                            if (!dependenciesMet)
+                            {
+                                Logging.Log($"Deferring forced draft for {room.Name}: placement requirements are not met.", "Rooms");
+                                continue;
+                            }
+
                             while (!draftable && j < room.PickerArrays.Count)
                             {
                                 if (CurrentPickerArrays.Contains(room.PickerArrays[j]))
@@ -356,6 +371,20 @@ namespace RedPrinceArchipelago.Rooms
                         {
                             Logging.Log($"Unable to find room: {room.name}");
                         }
+                    }
+                }
+
+                // The game can restore vanilla entries when picker objects are
+                // recreated. Remove any managed room that is still locked even
+                // if it was absent from the untouched-array bookkeeping above.
+                for (int i = array.arrayList.Count - 1; i >= 0; i--)
+                {
+                    GameObject candidate = array.arrayList[i]?.TryCast<GameObject>();
+                    ModRoom candidateRoom = candidate == null ? null : GetRoomByName(candidate.name);
+                    if (candidateRoom != null && !candidateRoom.IsUnlocked && !candidateRoom.UseVanilla)
+                    {
+                        array.Remove(candidate, "GameObject");
+                        Logging.Log($"Removed locked room {candidateRoom.Name} from {array.name}.", "Rooms");
                     }
                 }
             }

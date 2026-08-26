@@ -1583,6 +1583,23 @@ namespace RedPrinceArchipelago.Items
         }
 
         /// <summary>
+        ///     Handles upgrade disks whose room-specific pickup FSM does not send the
+        ///     usual Global Manager "Upgrade ... Pickup" event. The game's stat event
+        ///     is authoritative and is emitted for every disk location.
+        /// </summary>
+        public bool OnRecordedFoundEvent(EventID eventId)
+        {
+            int index = EventNames.IndexOf(eventId);
+            if (index < 0 || index >= Locations.Count)
+            {
+                return false;
+            }
+
+            OnFind(Locations[index]);
+            return true;
+        }
+
+        /// <summary>
         ///     Handles setting the game state when an upgrade disk is used.
         /// </summary>
         /// <param name="upgradeid">The Id of the upgrade disk.</param>

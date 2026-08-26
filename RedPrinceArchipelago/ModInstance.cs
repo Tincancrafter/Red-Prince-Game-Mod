@@ -600,21 +600,22 @@ namespace RedPrinceArchipelago
             if (!ArchipelagoOptions.RoomDraftSanity) return;
 
             var receivedItems = ArchipelagoClient.ServerData.ReceivedItems;
-            if (receivedItems == null || receivedItems.Count == 0) return;
 
-            // Lock all rooms that aren't using vanilla handling
+            // Archipelago is authoritative in room draft sanity mode. Lock every
+            // room first so a scene reload cannot restore vanilla draft entries.
             foreach (var room in Plugin.ModRoomManager.Rooms)
             {
-                if (!room.UseVanilla)
-                {
-                    room.IsUnlocked = false;
-                }
+                room.UseVanilla = false;
+                room.IsUnlocked = false;
             }
 
             // Unlock rooms we've received from Archipelago
-            foreach (string itemName in receivedItems)
+            if (receivedItems != null)
             {
-                Plugin.ModRoomManager.UnlockRoomForArchipelago(itemName);
+                foreach (string itemName in receivedItems)
+                {
+                    Plugin.ModRoomManager.UnlockRoomForArchipelago(itemName);
+                }
             }
         }
 
@@ -729,6 +730,15 @@ namespace RedPrinceArchipelago
         {
             Logging.Log($"Stats being recorded for {id}.", "StatEvents");
             if (!ArchipelagoClient.Authenticated) return;
+
+            // Some room-specific upgrade disk FSMs (including Lost & Found) record
+            // the vanilla stat but never send the generic pickup event we normally
+            // intercept. Use the recorded stat as a reliable fallback. OnFind is
+            // deduplicated, so disks that emit both events still send one AP check.
+            if (ModItemManager.UpgradeDisks?.OnRecordedFoundEvent(id) == true)
+            {
+                return;
+            }
 
             switch (id)
             {
@@ -1081,7 +1091,11 @@ namespace RedPrinceArchipelago
                     };
                 // Checks if the Secret Passage can be drafted and if so prevents default drafting behaviour.
                 Func<ModRoom, bool> secretPassageCheck = (room) => { 
-                    int targetRank = TheGrid.GetIntVariable("Taret Rank").Value;
+                    int targetTile = TheGrid.GetIntVariable("Target Tile").Value;
+                    int targetRank = targetTile >= 0
+                        ? (targetTile / 5) + 1
+                        : TheGrid.GetIntVariable("Taret Rank").Value;
+                    Logging.LogDebug($"Secret Passage placement check: target tile {targetTile}, derived rank {targetRank}.", "Rooms");
                     return targetRank != 1 && targetRank != 9;
                 };
                 // Checks if the current chess power is the rook for the armory unlock.

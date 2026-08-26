@@ -4,6 +4,7 @@ using Archipelago.MultiClient.Net.Enums;
 using Archipelago.MultiClient.Net.Helpers;
 using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
+using Newtonsoft.Json;
 using RedPrinceArchipelago.Items;
 using RedPrinceArchipelago.Models;
 using RedPrinceArchipelago.Rooms;
@@ -24,6 +25,7 @@ public class ArchipelagoClient
 
     public static bool Authenticated;
     private bool _AttemptingConnection;
+    private bool _ManualDisconnect;
     public bool IsAttemptingConnection => _AttemptingConnection;
     public static bool Reconnected = false;
     public static bool Disconnected = false; // Indicates whether the client was fully disconnected at any point during the session (important for crash handling).
@@ -109,8 +111,22 @@ public class ArchipelagoClient
             ArchipelagoConsole.SetConnectionStatus("Could not create a connection. Check the host and port.", true);
             return;
         }
-        State.InitializeDeathLinkTotals();
-        TryConnect();
+        try
+        {
+            State.InitializeDeathLinkTotals();
+            TryConnect();
+        }
+        catch (Exception e)
+        {
+            Logging.LogError(e);
+            Authenticated = false;
+            ArchipelagoConsole.SetConnectionStatus($"Connection failed: {e.Message}", true);
+            Disconnect();
+        }
+        finally
+        {
+            _AttemptingConnection = false;
+        }
     }
 
     /// <summary>
@@ -150,9 +166,6 @@ public class ArchipelagoClient
         // Else handle login.
         else if (loginResult is LoginSuccessful success)
         {
-            // Get the slot data
-            SlotData slotData = session.DataStorage.GetSlotData<SlotData>();
-
             // Check if the Seed and options match the expected Seed and Options.
             if (ServerData.Seed == "" || ServerData.Seed == session.RoomState.Seed) {
                 //If the Seed data was already stored this is a recconnect.
@@ -190,6 +203,8 @@ public class ArchipelagoClient
         if (result.Successful)
         {
             var success = (LoginSuccessful)result;
+            SlotData slotData = JsonConvert.DeserializeObject<SlotData>(
+                JsonConvert.SerializeObject(success.SlotData)) ?? new SlotData();
             
 
             // Handles the reconnection to the Server.
@@ -198,7 +213,7 @@ public class ArchipelagoClient
                 if (Disconnected)
                 {
                     // Regular Recconnect;
-                    ServerData.Options = session.DataStorage.GetSlotData<SlotData>();
+                    ServerData.Options = slotData;
                     ArchipelagoOptions.LoadFromSlotData(ServerData.Options);
                     // Initialize DeathLinkHandler.
                     DeathLinkHandler = new(session.CreateDeathLinkService(), ServerData.SlotName, ArchipelagoOptions.DeathLinkType != DeathLinkType.option_none);
@@ -207,7 +222,7 @@ public class ArchipelagoClient
                 else {
                     //Crash Disconnect;
                     State.InitializeReceivedItems();
-                    ServerData.Options = session.DataStorage.GetSlotData<SlotData>();
+                    ServerData.Options = slotData;
                     ArchipelagoOptions.LoadFromSlotData(ServerData.Options);
                     // Initialize DeathLinkHandler.
                     DeathLinkHandler = new(session.CreateDeathLinkService(), ServerData.SlotName, ArchipelagoOptions.DeathLinkType != DeathLinkType.option_none);
@@ -219,7 +234,7 @@ public class ArchipelagoClient
             else
             {
                 // Gets the Initial data from the server.
-                ServerData.Options = session.DataStorage.GetSlotData<SlotData>();
+                ServerData.Options = slotData;
                 ServerData.Seed = session.RoomState.Seed;
                 ServerData.Index = 0;
                 // Load options into the static ArchipelagoOptions class
@@ -535,6 +550,19 @@ public class ArchipelagoClient
     }
 
     /// <summary>
+    /// Safely closes the current connection or cancels an in-progress attempt.
+    /// </summary>
+    public void DisconnectFromServer()
+    {
+        _ManualDisconnect = true;
+        _AttemptingConnection = false;
+        Disconnected = true;
+        Disconnect();
+        ArchipelagoConsole.SetConnectionStatus("Disconnected.", false);
+        ArchipelagoConsole.LogMessage("Disconnected from Archipelago.");
+    }
+
+    /// <summary>
     ///    Sends a message to the Archipelago Server. 
     /// </summary>
     /// <param name="message"></param>
@@ -576,6 +604,13 @@ public class ArchipelagoClient
     /// <param name="reason"></param>
     private void OnSessionSocketClosed(string reason)
     {
+        if (_ManualDisconnect)
+        {
+            _ManualDisconnect = false;
+            Disconnect();
+            ArchipelagoConsole.SetConnectionStatus("Disconnected.", false);
+            return;
+        }
         Disconnected = true;
         Logging.LogError($"Connection to Archipelago lost: {reason}");
         ArchipelagoConsole.SetConnectionStatus($"Connection lost: {reason}", true);
