@@ -7,8 +7,14 @@ using RedPrinceArchipelago.Utils;
 using StableNameDotNet;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -55,9 +61,17 @@ public static class ArchipelagoConsole
     private static readonly HttpClient UpdateClient = new();
     private static string UpdateButtonText = "Checking...";
     private static string LatestReleaseUrl = "https://github.com/Tincancrafter/Red-Prince-Releases/releases/latest";
+    private static string LatestVersion = Plugin.PluginVersion;
+    private static string LatestPluginAssetUrl;
+    private static string LatestPluginDigest;
+    private static string StagedUpdateDirectory;
     private static bool UpdateCheckComplete;
     private static bool UpdateAvailable;
     private static bool UpdateCheckRunning;
+    private static bool UpdateDownloadRunning;
+    private static bool UpdateReady;
+    private const string UpdateAssetName = "RedPrinceArchipelago.zip";
+    private const string UpdateStatusFileName = ".redprince-update-status";
 
     /// <summary>
     ///     Unity Monobehaviour Awake()
@@ -65,7 +79,42 @@ public static class ArchipelagoConsole
     public static void Awake()
     {
         UpdateWindow();
-        CheckForUpdates();
+        if (!ReadUpdateStatus())
+        {
+            CheckForUpdates();
+        }
+    }
+
+    private static string GetPluginDirectory()
+    {
+        string assemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        return string.IsNullOrWhiteSpace(assemblyDirectory)
+            ? Path.Combine(Paths.PluginPath, Plugin.PluginFolderName)
+            : assemblyDirectory;
+    }
+
+    private static bool ReadUpdateStatus()
+    {
+        string statusPath = Path.Combine(GetPluginDirectory(), UpdateStatusFileName);
+        if (!File.Exists(statusPath)) return false;
+
+        try
+        {
+            string status = File.ReadAllText(statusPath).Trim();
+            File.Delete(statusPath);
+            UpdateButtonText = status == "installed"
+                ? "Update installed"
+                : "Update failed—restored backup";
+            UpdateCheckComplete = true;
+            UpdateAvailable = false;
+            Logging.Log(status == "installed" ? "Plugin update installed successfully." : "Plugin update failed; restored backup.", "UpdateCheck");
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Logging.LogWarning($"Unable to read update status: {exception.Message}", "UpdateCheck");
+            return false;
+        }
     }
 
     private static async void CheckForUpdates()
@@ -85,10 +134,16 @@ public static class ArchipelagoConsole
             JObject release = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
             string latestTag = release.Value<string>("tag_name")?.TrimStart('v', 'V') ?? Plugin.PluginVersion;
             LatestReleaseUrl = release.Value<string>("html_url") ?? LatestReleaseUrl;
+            LatestVersion = latestTag;
+            JObject pluginAsset = release["assets"]?.Children<JObject>()
+                .FirstOrDefault(asset => asset.Value<string>("name") == UpdateAssetName);
+            LatestPluginAssetUrl = pluginAsset?.Value<string>("browser_download_url");
+            LatestPluginDigest = pluginAsset?.Value<string>("digest");
 
             UpdateAvailable = Version.TryParse(latestTag, out Version latestVersion) &&
                 Version.TryParse(Plugin.PluginVersion, out Version installedVersion) &&
-                latestVersion > installedVersion;
+                latestVersion > installedVersion &&
+                !string.IsNullOrWhiteSpace(LatestPluginAssetUrl);
             UpdateButtonText = UpdateAvailable ? $"Update {latestTag}" : "Latest";
             UpdateCheckComplete = true;
         }
@@ -102,6 +157,167 @@ public static class ArchipelagoConsole
         {
             UpdateCheckRunning = false;
         }
+    }
+
+    private static async void DownloadUpdate()
+    {
+        if (UpdateDownloadRunning || !UpdateAvailable || string.IsNullOrWhiteSpace(LatestPluginAssetUrl)) return;
+
+        UpdateDownloadRunning = true;
+        UpdateButtonText = "Downloading…";
+        try
+        {
+            using HttpRequestMessage request = new(HttpMethod.Get, LatestPluginAssetUrl);
+            request.Headers.UserAgent.ParseAdd($"RedPrinceArchipelago/{Plugin.PluginVersion}");
+            using HttpResponseMessage response = await UpdateClient.SendAsync(request).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            byte[] archiveBytes = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+
+            if (!string.IsNullOrWhiteSpace(LatestPluginDigest) && LatestPluginDigest.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase))
+            {
+                string actualDigest = Convert.ToHexString(SHA256.HashData(archiveBytes));
+                string expectedDigest = LatestPluginDigest.Substring("sha256:".Length);
+                if (!actualDigest.Equals(expectedDigest, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidDataException("Downloaded update failed SHA-256 verification.");
+                }
+            }
+
+            StagedUpdateDirectory = Path.Combine(Path.GetTempPath(), $"RedPrinceArchipelago-{LatestVersion}");
+            if (Directory.Exists(StagedUpdateDirectory)) Directory.Delete(StagedUpdateDirectory, true);
+            Directory.CreateDirectory(StagedUpdateDirectory);
+
+            HashSet<string> expectedFiles = new(StringComparer.OrdinalIgnoreCase)
+            {
+                "Archipelago.MultiClient.Net.dll",
+                "Newtonsoft.Json.dll",
+                "RedPrinceArchipelago.deps.json",
+                "RedPrinceArchipelago.dll",
+            };
+            using MemoryStream archiveStream = new(archiveBytes);
+            using ZipArchive archive = new(archiveStream, ZipArchiveMode.Read);
+            foreach (ZipArchiveEntry entry in archive.Entries)
+            {
+                if (entry.FullName != entry.Name || !expectedFiles.Remove(entry.Name))
+                {
+                    throw new InvalidDataException($"Unexpected file in update package: {entry.FullName}");
+                }
+                entry.ExtractToFile(Path.Combine(StagedUpdateDirectory, entry.Name));
+            }
+            if (expectedFiles.Count != 0)
+            {
+                throw new InvalidDataException($"Update package is missing: {string.Join(", ", expectedFiles)}");
+            }
+
+            UpdateReady = true;
+            UpdateButtonText = "Restart to install";
+            Logging.Log($"Plugin {LatestVersion} downloaded and ready to install.", "UpdateCheck");
+        }
+        catch (Exception exception)
+        {
+            UpdateReady = false;
+            UpdateButtonText = "Retry update";
+            Logging.LogWarning($"Unable to download plugin update: {exception.Message}", "UpdateCheck");
+        }
+        finally
+        {
+            UpdateDownloadRunning = false;
+        }
+    }
+
+    private static void RestartAndInstallUpdate()
+    {
+        if (!UpdateReady || !Directory.Exists(StagedUpdateDirectory)) return;
+
+        string pluginDirectory = GetPluginDirectory();
+        string statusPath = Path.Combine(pluginDirectory, UpdateStatusFileName);
+        string helperPath = Path.Combine(Path.GetTempPath(), $"RedPrinceUpdater-{Guid.NewGuid():N}.ps1");
+        string gameArguments = string.Join(" ", Environment.GetCommandLineArgs().Skip(1).Select(QuoteWindowsArgument));
+        string helperScript = @"
+param([int]$GamePid,[string]$Source,[string]$Target,[string]$GameExe,[string]$GameArguments,[string]$StatusFile)
+$ErrorActionPreference = 'Stop'
+$backup = ""$Target.backup""
+try {
+    Wait-Process -Id $GamePid -ErrorAction SilentlyContinue
+    if (Test-Path -LiteralPath $backup) { Remove-Item -LiteralPath $backup -Recurse -Force }
+    New-Item -ItemType Directory -Path $backup | Out-Null
+    Get-ChildItem -LiteralPath $Target -File | Copy-Item -Destination $backup -Force
+    Get-ChildItem -LiteralPath $Source -File | Copy-Item -Destination $Target -Force
+    Set-Content -LiteralPath $StatusFile -Value 'installed'
+} catch {
+    if (Test-Path -LiteralPath $backup) {
+        Get-ChildItem -LiteralPath $backup -File | Copy-Item -Destination $Target -Force
+    }
+    Set-Content -LiteralPath $StatusFile -Value 'failed'
+}
+if (Test-Path -LiteralPath $GameExe) {
+    if ([string]::IsNullOrWhiteSpace($GameArguments)) {
+        Start-Process -FilePath $GameExe
+    } else {
+        Start-Process -FilePath $GameExe -ArgumentList $GameArguments
+    }
+}
+Remove-Item -LiteralPath $PSCommandPath -Force
+";
+        File.WriteAllText(helperPath, helperScript);
+
+        ProcessStartInfo updater = new("powershell.exe")
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden,
+        };
+        updater.ArgumentList.Add("-NoProfile");
+        updater.ArgumentList.Add("-ExecutionPolicy");
+        updater.ArgumentList.Add("Bypass");
+        updater.ArgumentList.Add("-File");
+        updater.ArgumentList.Add(helperPath);
+        updater.ArgumentList.Add("-GamePid");
+        updater.ArgumentList.Add(Environment.ProcessId.ToString());
+        updater.ArgumentList.Add("-Source");
+        updater.ArgumentList.Add(StagedUpdateDirectory);
+        updater.ArgumentList.Add("-Target");
+        updater.ArgumentList.Add(pluginDirectory);
+        updater.ArgumentList.Add("-GameExe");
+        updater.ArgumentList.Add(Environment.ProcessPath ?? string.Empty);
+        updater.ArgumentList.Add("-GameArguments");
+        updater.ArgumentList.Add(gameArguments);
+        updater.ArgumentList.Add("-StatusFile");
+        updater.ArgumentList.Add(statusPath);
+        Process.Start(updater);
+        Application.Quit();
+    }
+
+    private static string QuoteWindowsArgument(string argument)
+    {
+        if (argument.Length != 0 && !argument.Any(character => char.IsWhiteSpace(character) || character == '"'))
+        {
+            return argument;
+        }
+
+        StringBuilder quoted = new("\"");
+        int backslashes = 0;
+        foreach (char character in argument)
+        {
+            if (character == '\\')
+            {
+                backslashes++;
+                continue;
+            }
+            if (character == '"')
+            {
+                quoted.Append('\\', backslashes * 2 + 1);
+                quoted.Append('"');
+                backslashes = 0;
+                continue;
+            }
+            quoted.Append('\\', backslashes);
+            backslashes = 0;
+            quoted.Append(character);
+        }
+        quoted.Append('\\', backslashes * 2);
+        quoted.Append('"');
+        return quoted.ToString();
     }
 
     public static void ShowConnectionPrompt()
@@ -274,12 +490,19 @@ public static class ArchipelagoConsole
         GUI.Label(new Rect(x, y, contentWidth - actionButtonsWidth - actionButtonGap, rowHeight),
             Plugin.ModDisplayInfo, fieldLabelStyle);
         bool previousUpdateEnabled = GUI.enabled;
-        GUI.enabled = previousUpdateEnabled && (!UpdateCheckComplete || UpdateAvailable) && !UpdateCheckRunning;
+        GUI.enabled = previousUpdateEnabled && (!UpdateCheckComplete || UpdateAvailable || UpdateReady) && !UpdateCheckRunning && !UpdateDownloadRunning;
         if (GUI.Button(new Rect(x + contentWidth - actionButtonsWidth, y, actionButtonWidth, rowHeight), UpdateButtonText))
         {
             if (UpdateCheckComplete && UpdateAvailable)
             {
-                Application.OpenURL(LatestReleaseUrl);
+                if (UpdateReady)
+                {
+                    RestartAndInstallUpdate();
+                }
+                else
+                {
+                    DownloadUpdate();
+                }
             }
             else
             {
