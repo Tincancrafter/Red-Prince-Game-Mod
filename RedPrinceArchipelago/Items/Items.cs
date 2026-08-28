@@ -1705,7 +1705,9 @@ namespace RedPrinceArchipelago.Items
             Plugin.ModItemManager.AddItem(new UniqueItem("KEYCARD", Plugin.ModItemManager.GetInventoryItem("KEYCARD"), false, ItemSanityType.Key));
             Plugin.ModItemManager.AddItem(new UniqueItem("SILVER KEY", Plugin.ModItemManager.GetInventoryItem("SILVER KEY"), false, ItemSanityType.Key, true, false, ["Locksmith", "Dig"]));
             Plugin.ModItemManager.AddItem(new UniqueItem("KEY 8", Plugin.ModItemManager.GetInventoryItem("KEY 8"), false, ItemSanityType.Key, true, true));
-            Plugin.ModItemManager.AddItem(new UniqueItem("BASEMENT KEY", Plugin.ModItemManager.GetInventoryItem("BASEMENT KEY"), false, ItemSanityType.Key));
+            // Unlike vanilla, an Archipelago Basement Key may come from any
+            // check. Keep it between days so received progression is not lost.
+            Plugin.ModItemManager.AddItem(new UniqueItem("BASEMENT KEY", Plugin.ModItemManager.GetInventoryItem("BASEMENT KEY"), false, ItemSanityType.Key, true, true));
             Plugin.ModItemManager.AddItem(new UniqueItem("VAULT KEY 149", Plugin.ModItemManager.GetInventoryItem("VAULT KEY 149"), false, ItemSanityType.Key, true, false, ["Dig"]));
             Plugin.ModItemManager.AddItem(new UniqueItem("VAULT KEY 233", Plugin.ModItemManager.GetInventoryItem("VAULT KEY 233"), false, ItemSanityType.Key, true, false, ["Dig"]));
             Plugin.ModItemManager.AddItem(new UniqueItem("VAULT KEY 304", Plugin.ModItemManager.GetInventoryItem("VAULT KEY 304"), false, ItemSanityType.Key, true, false, ["Dig"]));

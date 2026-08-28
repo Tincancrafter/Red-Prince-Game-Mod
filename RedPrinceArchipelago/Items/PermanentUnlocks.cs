@@ -32,8 +32,12 @@ namespace RedPrinceArchipelago.Items
 
         public static bool HasPrepatched = false;
 
-        public static PermanentUnlock GetPermanentUnlock(string name)
+        public static PermanentUnlock GetPermanentUnlock(string name, int progressiveTier = 0)
         {
+            if (name == "Progressive Blackbridge/Satellite")
+            {
+                return progressiveTier <= 1 ? BlackBridgeGrotto : SatelliteDish;
+            }
             if (UnlockedDict.ContainsKey(name))
             {
                 Logging.LogWarning(name);
@@ -55,8 +59,6 @@ namespace RedPrinceArchipelago.Items
                 if (GemstoneCaverns.Solved && GemstoneCaverns.Unlocked && !ModInstance.GlobalPersistentManager.GetBoolVariable("Gemstone Cavern Open").Value)
                 {
                     GemstoneCaverns.UnlockItem();
-                    // Retroactively apply the Gemstone Cavern's Effect
-                    GemstoneCaverns.ApplyEffects();
                 }
                 if (BlackBridgeGrotto.Solved && BlackBridgeGrotto.Unlocked && !ModInstance.GlobalPersistentManager.GetBoolVariable("Grotto Open").Value)
                 {
@@ -65,8 +67,6 @@ namespace RedPrinceArchipelago.Items
                 if (AppleOrchard.Solved && AppleOrchard.Unlocked && !ModInstance.GlobalPersistentManager.GetBoolVariable("Apple Orchard Open").Value)
                 {
                     AppleOrchard.UnlockItem();
-                    // Retroactively apply the Gemstone Cavern's Effect
-                    AppleOrchard.ApplyEffects();
                 }
                 if (WestGatePath.Solved && WestGatePath.Unlocked && !ModInstance.GlobalPersistentManager.GetBoolVariable("West Gate Open").Value)
                 {
@@ -110,11 +110,16 @@ namespace RedPrinceArchipelago.Items
             appleOrchardButton.GetState("Check Code").ChangeTransition("FINISHED", "Collider's Off");
             if (Solved)
             {
+                bool wasOpen = ModInstance.GlobalPersistentManager.GetBoolVariable("Apple Orchard Open").Value;
                 // Log the Unlock of the Apple Orchard to Stats.
                 ModInstance.StatsLogger.GetComponent<StatsLogger>().Record_Event(EventID.Orchard_Unlocked);
                 // Set the Bool in the global persistent Manager to true.
                 ModInstance.GlobalPersistentManager.GetBoolVariable("Apple Orchard Open").Value = true;
                 GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /PERMANENT ADDITIONS")?.SetActive(true);
+                if (!wasOpen)
+                {
+                    ApplyEffects();
+                }
             }
         }
         // Prevents the default Unlock.
@@ -136,6 +141,10 @@ namespace RedPrinceArchipelago.Items
         {
             Solved = true;
             ModInstance.ModEventHandler.OnGateOpened(LocationName);
+            if (Unlocked)
+            {
+                UnlockItem();
+            }
         }
 
         public void ApplyEffects() {
@@ -165,6 +174,7 @@ namespace RedPrinceArchipelago.Items
             }
             if (Solved)
             {
+                bool wasOpen = ModInstance.GlobalPersistentManager.GetBoolVariable("Gemstone Cavern Open").Value;
                 GameObject.Find("CULL GRID - GROUNDS/UNDERGROUND/Cull - Gemstone Cavern (once revealed)")?.SetActive(true);
                 // Activate Permanent Additions
                 GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /PERMANENT ADDITIONS")?.SetActive(true);
@@ -179,6 +189,10 @@ namespace RedPrinceArchipelago.Items
                 GameObject.Find("TERRAIN/EAST SECTOR/_GEM CAVE")?.SetActive(true);
                 // Set the Bool in the Global Persistent Manager to true.
                 ModInstance.GlobalPersistentManager.GetBoolVariable("Gemstone Cavern Open").Value = true;
+                if (!wasOpen)
+                {
+                    ApplyEffects();
+                }
             }
         }
 
@@ -227,13 +241,17 @@ namespace RedPrinceArchipelago.Items
         {
             Solved = true;
             ModInstance.ModEventHandler.OnVACControlsSolved();
+            if (Unlocked)
+            {
+                UnlockItem();
+            }
         }
 
         public void ApplyEffects()
         {
-            FsmInt AdjustmentAmount = ModInstance.GemManager.FindIntVariable("Adjustment Amount");
+            FsmInt AdjustmentAmount = ModInstance.GemManager.FindIntVariable("Gem Adjustment Amount");
             AdjustmentAmount.Value = AdjustmentAmount.Value + 2;
-            // Send the "Update" event and the step counter should update.
+            // Send the "Update" event and the gem counter should update.
             ModInstance.GemManager.SendEvent("Update");
         }
     }
@@ -338,7 +356,7 @@ namespace RedPrinceArchipelago.Items
             for (int i = 0; i < RoomSpawnPools.transform.childCount; i++)
             {
                 Transform child = RoomSpawnPools.transform.GetChild(i);
-                if (child.name.Contains("Utility Closet"))
+                if (child.name.Contains("Laboratory"))
                 {
                     RoomObject = child.gameObject;
                     PlayMakerFSM LabMachine = RoomObject.transform.Find("_GAMEPLAY/Lab Machine").GetComponent<PlayMakerFSM>();
@@ -363,6 +381,10 @@ namespace RedPrinceArchipelago.Items
         {
             Solved = true;
             ModInstance.ModEventHandler.OnLaboratoryPuzzleSolved();
+            if (Unlocked)
+            {
+                UnlockItem();
+            }
         }
     }
 
@@ -405,6 +427,10 @@ namespace RedPrinceArchipelago.Items
         {
             Solved = true;
             ModInstance.ModEventHandler.OnSatelliteRaised();
+            if (Unlocked)
+            {
+                UnlockItem();
+            }
         }
     }
 

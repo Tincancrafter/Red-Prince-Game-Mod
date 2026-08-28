@@ -304,6 +304,12 @@ namespace RedPrinceArchipelago.Items
 
             foreach (UniqueItem item in ModItemManager.UniqueItemList)
             {
+                // Restore Archipelago-owned persistent items after the game
+                // clears its per-day inventory.
+                if (item.IsPersistent && item.IsUnlocked && !ModItemManager.PickedUp.Contains(item.GameObj))
+                {
+                    item.AddItemToInventory();
+                }
                 // Handles start of Day Item Removal
                 item.RemoveFromPool();
                 // Handles updating the Commissary Menu

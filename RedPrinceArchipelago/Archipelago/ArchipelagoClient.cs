@@ -407,6 +407,7 @@ public class ArchipelagoClient
             }
             
         }
+        int progressiveBlackbridgeTier = 0;
         foreach (ItemInfo item in session.Items.AllItemsReceived)
         {
             if (item.ItemName.ToUpper().Contains("UPGRADE DISK")) {
@@ -428,7 +429,11 @@ public class ArchipelagoClient
             }
             else
             {
-                PermanentUnlock permUnlock = Unlocks.GetPermanentUnlock(item.ItemName);
+                if (item.ItemName == "Progressive Blackbridge/Satellite")
+                {
+                    progressiveBlackbridgeTier++;
+                }
+                PermanentUnlock permUnlock = Unlocks.GetPermanentUnlock(item.ItemName, progressiveBlackbridgeTier);
                 if (permUnlock != null)
                 {
                     permUnlock.Unlocked = true;
@@ -798,7 +803,10 @@ public class ArchipelagoQueueManager {
         if (ModInstance.SceneLoaded && ModInstance.HasInitializedRooms && ArchipelagoClient.Authenticated)
         {
             ArchipelagoClient.ServerData.ReceivedItems.Add(item.ItemName);
-            PermanentUnlock unlock = Unlocks.GetPermanentUnlock(item.ItemName);
+            int progressiveTier = item.ItemName == "Progressive Blackbridge/Satellite"
+                ? ArchipelagoClient.ServerData.ReceivedItems.Count(name => name == item.ItemName)
+                : 0;
+            PermanentUnlock unlock = Unlocks.GetPermanentUnlock(item.ItemName, progressiveTier);
             if (unlock != null)
             {
 
@@ -862,7 +870,10 @@ public class ArchipelagoQueueManager {
         if (ModInstance.IsInRun)
         {
             ArchipelagoClient.ServerData.ReceivedItems.Add(item.ItemName);
-            PermanentUnlock unlock = Unlocks.GetPermanentUnlock(item.ItemName);
+            int progressiveTier = item.ItemName == "Progressive Blackbridge/Satellite"
+                ? ArchipelagoClient.ServerData.ReceivedItems.Count(name => name == item.ItemName)
+                : 0;
+            PermanentUnlock unlock = Unlocks.GetPermanentUnlock(item.ItemName, progressiveTier);
             if (unlock != null)
             {
                 unlock.UnlockItem();
