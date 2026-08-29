@@ -11,3 +11,4 @@ Directory.Build.props
 *.zip
 *.dll
 *.pdb
+updater_test_*/

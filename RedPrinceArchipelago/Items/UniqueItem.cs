@@ -183,6 +183,7 @@ namespace RedPrinceArchipelago.Items
                     ModItemManager.PickedUp.AddIfUnique(GameObj);
                     InventoryIcons.Add(icon, "GameObject");
                     ModItemManager.PreSpawn.RemoveIfExists(Name);
+                    CompleteFirstPickupForKeptItem();
                     if (Name == "RUNNING SHOES")
                     {
                         ModInstance.RunningEngine.SendEvent("Update");
@@ -191,6 +192,29 @@ namespace RedPrinceArchipelago.Items
                 }
                
             }
+        }
+
+        /// <summary>
+        /// A kept AP item bypasses its normal world pickup. Complete the matching
+        /// first-pickup location once so that check cannot become unreachable.
+        /// </summary>
+        private void CompleteFirstPickupForKeptItem()
+        {
+            if (!ArchipelagoOptions.KeepSimpleItemsEveryRun || HasBeenFound)
+            {
+                return;
+            }
+
+            string locationName = $"{Name.ToTitleCase()} First Pickup";
+            if (Plugin.ArchipelagoClient.GetLocationFromName(locationName) == -1)
+            {
+                return;
+            }
+
+            HasBeenFound = true;
+            Plugin.ModItemManager.RemoveUniqueItemAPSwirly(this);
+            ModInstance.QueueManager.AddLocationToQueue(locationName);
+            Logging.Log($"Completed {locationName} from kept AP item receipt.", "Items");
         }
 
         public bool ApplySanity()
@@ -302,13 +326,18 @@ namespace RedPrinceArchipelago.Items
 
             };
 
+            int restoredItems = 0;
             foreach (UniqueItem item in ModItemManager.UniqueItemList)
             {
-                // Restore Archipelago-owned persistent items after the game
-                // clears its per-day inventory.
-                if (item.IsPersistent && item.IsUnlocked && !ModItemManager.PickedUp.Contains(item.GameObj))
+                // Restore Archipelago-owned items after the game clears its
+                // per-day inventory. Items explicitly marked persistent always
+                // return; the option extends that behavior to all eligible
+                // received UniqueItems.
+                bool restoreEveryRun = item.IsPersistent || ArchipelagoOptions.KeepSimpleItemsEveryRun;
+                if (restoreEveryRun && item.IsUnlocked && !ModItemManager.PickedUp.Contains(item.GameObj))
                 {
                     item.AddItemToInventory();
+                    restoredItems++;
                 }
                 // Handles start of Day Item Removal
                 item.RemoveFromPool();
@@ -385,6 +414,10 @@ namespace RedPrinceArchipelago.Items
                 else if (item.HasBeenFound && item.Name == "MICROCHIP 3" && !item.IsUnlocked) {
                     GameObject.Find("TERRAIN/EAST SECTOR/_GROTTO/_GROTTO GAMEPLAY/Microchip Pillar/Microchip 3").SetActive(false);
                 }
+            }
+            if (ArchipelagoOptions.KeepSimpleItemsEveryRun)
+            {
+                Logging.Log($"Restored {restoredItems} simple item(s) for this run.", "StartOfDay");
             }
         }
 

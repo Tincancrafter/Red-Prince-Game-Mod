@@ -230,6 +230,7 @@ namespace RedPrinceArchipelago
         /// </summary>
         private void OnDestroy()
         {
+            DraftCheckHighlighter.RestoreAll();
             SceneManager.sceneLoaded -= (Action<Scene, LoadSceneMode>)OnSceneLoaded;
             Harmony.UnpatchID("ItemPatches");
             Harmony.UnpatchID("EventPatches");
@@ -241,6 +242,7 @@ namespace RedPrinceArchipelago
         ///     Runs every Game Tick.
         /// </summary>
         private void Update() {
+            DraftCheckHighlighter.Update();
             if (IsInRun && ArchipelagoClient.Authenticated)
             {
                 QueueManager.DequeueUsedUpgrade();
@@ -737,6 +739,12 @@ namespace RedPrinceArchipelago
             // deduplicated, so disks that emit both events still send one AP check.
             if (ModItemManager.UpgradeDisks?.OnRecordedFoundEvent(id) == true)
             {
+                if (id == EventID.Upgrade_Disk_LostFound_found &&
+                    RoomHandler.RoomHandlers.TryGetValue("LOST & FOUND", out RoomHandler handler) &&
+                    handler is LostAndFound lostAndFound)
+                {
+                    lostAndFound.RemoveCollectedUpgradeDisk();
+                }
                 return;
             }
 

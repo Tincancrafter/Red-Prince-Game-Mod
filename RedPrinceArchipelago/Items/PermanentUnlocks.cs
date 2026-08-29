@@ -16,6 +16,8 @@ namespace RedPrinceArchipelago.Items
         public static SatelliteDish SatelliteDish = new();
         public static Dictionary<string, PermanentUnlock> UnlockedDict = new(){
             {"Apple Orchard", AppleOrchard},
+            {"Unlock Gemstone Caverns", GemstoneCaverns},
+            // Compatibility with seeds generated before the item was renamed.
             {"Gemstone Caverns", GemstoneCaverns},
             {"West Gate Path", WestGatePath},
             {"Blackbridge Grotto", BlackBridgeGrotto},
@@ -158,7 +160,7 @@ namespace RedPrinceArchipelago.Items
     public class GemstoneCaverns : PermanentUnlock
     {
         // Override the Name
-        public override string Name { get; set; } = "Gemstone Caverns";
+        public override string Name { get; set; } = "Unlock Gemstone Caverns";
         public override string LocationName { get; set; } = "VAC Controls";
         public GameObject RoomObject = null;
 
@@ -362,7 +364,10 @@ namespace RedPrinceArchipelago.Items
                     PlayMakerFSM LabMachine = RoomObject.transform.Find("_GAMEPLAY/Lab Machine").GetComponent<PlayMakerFSM>();
                     PlayMakerFSM GrottoTrigger = RoomObject.transform.Find("_GAMEPLAY/Lab Machine/Grotto Trigger").GetComponent<PlayMakerFSM>();
                     FsmState GrottoState = GrottoTrigger?.GetState("State 2");
-                    GrottoState?.DisableActionsOfType<SendEvent>();
+                    // The first send-event enters Blackbridge's vanilla end-of-day
+                    // sequence. Suppress only that event; later send-events clean up
+                    // the cutscene and must remain enabled or the screen stays black.
+                    GrottoState?.DisableFirstActionOfType<SendEvent>();
                     GrottoState?.InsertAction(5, unfreeze);
                     GrottoState?.InsertAction(6, FSMEventHandler.RegisteredEvents["Blackbridge Grotto Unlock"].Event);
                     FsmBool GrottoOpen = LabMachine.GetBoolVariable("Grotto Open");

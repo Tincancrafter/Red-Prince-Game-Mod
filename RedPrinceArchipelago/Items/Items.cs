@@ -917,11 +917,39 @@ namespace RedPrinceArchipelago.Items
         public void StartOfDay()
         {
             AddAllPermanenentItems();
+            RegrantOpAllowanceItems();
             // Run upgrade disk start of day code if Upgrade Disk Sanity is on.
             if (ArchipelagoOptions.UpgradeDiskSanity) {
                 UpgradeDisks.StartOfDay();
             }
             
+        }
+
+        /// <summary>
+        /// Regrants received Extra Steps, Extra Gems, and Extra Dice filler items
+        /// at the beginning of each run when OP Allowance is enabled.
+        /// </summary>
+        private void RegrantOpAllowanceItems()
+        {
+            if (!ArchipelagoOptions.OpAllowance)
+            {
+                return;
+            }
+
+            int granted = 0;
+            foreach (string itemName in Plugin.ArchipelagoClient.GetAllReceivedItemNames())
+            {
+                JunkItem item = GetJunkItem(itemName);
+                if (item == null || !item.IsOpAllowanceItem)
+                {
+                    continue;
+                }
+
+                item.AddItemToInventory();
+                granted++;
+            }
+
+            Logging.Log($"Regranted {granted} OP Allowance item(s).", "StartOfDay");
         }
 
         /// <summary>
@@ -1204,6 +1232,9 @@ namespace RedPrinceArchipelago.Items
         {
             get { return _IsTrap; } //No setter since this is connected to count
         }
+
+        public bool IsOpAllowanceItem =>
+            !_IsTrap && (_ItemType == "Steps" || _ItemType == "Gems" || _ItemType == "Dice");
 
         public override void AddItemToInventory()
         {
@@ -1625,12 +1656,17 @@ namespace RedPrinceArchipelago.Items
         /// <param name="location">The name of the location.</param>
         private void OnFind(string location)
         {
-            location = location.Replace("LADYSHIPS", "LADYSHIP's").Replace(" &", " AND");
-            if (!FoundLocations.Contains(location.ToUpper()))
+            string canonicalLocation = location.Replace("LADYSHIP'S", "LADYSHIPS").Replace("LADYSHIP's", "LADYSHIPS").Replace(" &", " AND").ToUpper();
+            if (!FoundLocations.Contains(canonicalLocation))
             {
-                FoundLocations.Add(location.ToUpper());
+                FoundLocations.Add(canonicalLocation);
                 //Fix location name for pickup event.
-                ModInstance.ModEventHandler.OnUgradeDiskFound(location);
+                string displayLocation = canonicalLocation.Replace("LADYSHIPS", "LADYSHIP'S");
+                if (displayLocation == "LOST AND FOUND")
+                {
+                    displayLocation = "LOST & FOUND";
+                }
+                ModInstance.ModEventHandler.OnUgradeDiskFound(displayLocation);
             }
         }
 

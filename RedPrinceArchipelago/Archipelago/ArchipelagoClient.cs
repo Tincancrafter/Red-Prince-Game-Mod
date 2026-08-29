@@ -555,6 +555,20 @@ public class ArchipelagoClient
     }
 
     /// <summary>
+    /// Returns every item received for this slot. Unlike the locally persisted
+    /// processed-item list, this remains complete after reconnecting.
+    /// </summary>
+    public IEnumerable<string> GetAllReceivedItemNames()
+    {
+        if (session?.Items?.AllItemsReceived == null)
+        {
+            return Enumerable.Empty<string>();
+        }
+
+        return session.Items.AllItemsReceived.Select(item => item.ItemName).ToList();
+    }
+
+    /// <summary>
     /// Safely closes the current connection or cancels an in-progress attempt.
     /// </summary>
     public void DisconnectFromServer()

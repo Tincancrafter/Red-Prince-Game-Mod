@@ -35,6 +35,18 @@ namespace RedPrinceArchipelago.Models
         [JsonProperty("special_shop_sanity")]
         public bool SpecialShopSanity { get; set; }
 
+        [JsonProperty("bookshop_sanity")]
+        public bool BookshopSanity { get; set; }
+
+        [JsonProperty("library_checkout_sanity")]
+        public bool LibraryCheckoutSanity { get; set; }
+
+        [JsonProperty("op_allowance")]
+        public bool OpAllowance { get; set; }
+
+        [JsonProperty("keep_simple_items_every_run")]
+        public bool KeepSimpleItemsEveryRun { get; set; }
+
         [JsonProperty("item_logic_mode")]
         public ItemLogicMode ItemLogicMode { get; set; }
 

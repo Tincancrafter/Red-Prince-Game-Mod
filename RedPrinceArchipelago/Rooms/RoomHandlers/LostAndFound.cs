@@ -18,6 +18,7 @@ class LostAndFound : RoomHandler
     }
     public override void OnRoomDrafted(GameObject roomGameObject)
     {
+        RoomGameObject = roomGameObject;
         PlayMakerFSM ItemDropFSM = roomGameObject.transform.Find("_GAMEPLAY/9")?.gameObject?.GetComponent<PlayMakerFSM>();
         if (ItemDropFSM != null)
         {
@@ -30,5 +31,22 @@ class LostAndFound : RoomHandler
         else {
             Logging.LogWarning("Error changing Lost and Found Upgrade disk spawn logic.");
         }
+    }
+
+    /// <summary>
+    /// Removes the collected disk object. Lost &amp; Found does not run the usual
+    /// generic disk-pickup cleanup, leaving the disk in its rare-item slot.
+    /// </summary>
+    public void RemoveCollectedUpgradeDisk()
+    {
+        GameObject diskObject = RoomGameObject?.transform.Find("_GAMEPLAY/9")?.gameObject;
+        if (diskObject == null)
+        {
+            Logging.LogWarning("Unable to remove the collected Lost & Found upgrade disk.", "UpgradeDisks");
+            return;
+        }
+
+        GameObject.Destroy(diskObject);
+        Logging.Log("Removed the collected Lost & Found upgrade disk.", "UpgradeDisks");
     }
 }

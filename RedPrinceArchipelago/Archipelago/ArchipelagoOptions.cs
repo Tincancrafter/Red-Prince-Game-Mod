@@ -76,6 +76,14 @@ public static class ArchipelagoOptions
     /// </summary>
     public static bool KeySanity { get; private set; } = false;
 
+    public static bool BookshopSanity { get; private set; } = false;
+
+    public static bool LibraryCheckoutSanity { get; private set; } = false;
+
+    public static bool OpAllowance { get; private set; } = false;
+
+    public static bool KeepSimpleItemsEveryRun { get; private set; } = false;
+
     /// <summary>
     /// Death link type setting.
     /// </summary>
@@ -149,6 +157,10 @@ public static class ArchipelagoOptions
             WorkshopSanity = slotData.WorkShopSanity;
             UpgradeDiskSanity = slotData.UpgradeDiskSanity;
             KeySanity = slotData.KeySanity;
+            BookshopSanity = slotData.BookshopSanity;
+            LibraryCheckoutSanity = slotData.LibraryCheckoutSanity;
+            OpAllowance = slotData.OpAllowance;
+            KeepSimpleItemsEveryRun = slotData.KeepSimpleItemsEveryRun;
             DeathLinkType = slotData.DeathLinkType;
             DeathLinkGrace = slotData.DeathLinkGrace;
             DeathLinkProtection = slotData.DeathLinkProtection;
@@ -193,6 +205,10 @@ public static class ArchipelagoOptions
             WorkshopSanity = GetBool(slotData, "workshop_sanity", false);
             UpgradeDiskSanity = GetBool(slotData, "upgrade_disk_sanity", false);
             KeySanity = GetBool(slotData, "key_sanity", false);
+            BookshopSanity = GetBool(slotData, "bookshop_sanity", false);
+            LibraryCheckoutSanity = GetBool(slotData, "library_checkout_sanity", false);
+            OpAllowance = GetBool(slotData, "op_allowance", false);
+            KeepSimpleItemsEveryRun = GetBool(slotData, "keep_simple_items_every_run", false);
             DeathLinkType = (DeathLinkType)GetInt(slotData, "death_link_type", 0);
             DeathLinkGrace = GetInt(slotData, "death_link_grace", 0);
             DeathLinkMonkException = GetBool(slotData, "death_link_monk_exception", true);
@@ -223,6 +239,10 @@ public static class ArchipelagoOptions
         WorkshopSanity = false;
         UpgradeDiskSanity = false;
         KeySanity = false;
+        BookshopSanity = false;
+        LibraryCheckoutSanity = false;
+        OpAllowance = false;
+        KeepSimpleItemsEveryRun = false;
         DeathLinkType = DeathLinkType.option_none;
         DeathLinkGrace = 0;
         DeathLinkMonkException = true;
@@ -250,6 +270,10 @@ public static class ArchipelagoOptions
         Logging.Log($"  WorkshopSanity: {WorkshopSanity}");
         Logging.Log($"  UpgradeDiskSanity: {UpgradeDiskSanity}");
         Logging.Log($"  KeySanity: {KeySanity}");
+        Logging.Log($"  BookshopSanity: {BookshopSanity}");
+        Logging.Log($"  LibraryCheckoutSanity: {LibraryCheckoutSanity}");
+        Logging.Log($"  OpAllowance: {OpAllowance}");
+        Logging.Log($"  KeepSimpleItemsEveryRun: {KeepSimpleItemsEveryRun}");
         Logging.Log($"  DeathLinkType: {DeathLinkType}");
         Logging.Log($"  DeathLinkGrace: {DeathLinkGrace}");
         Logging.Log($"  DeathLinkMonkException: {DeathLinkMonkException}");
