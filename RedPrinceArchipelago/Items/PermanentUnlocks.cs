@@ -58,11 +58,11 @@ namespace RedPrinceArchipelago.Items
         {
             if (!HasPrepatched)
             {
-                if (GemstoneCaverns.Solved && GemstoneCaverns.Unlocked && !ModInstance.GlobalPersistentManager.GetBoolVariable("Gemstone Cavern Open").Value)
+                if (GemstoneCaverns.Unlocked && !ModInstance.GlobalPersistentManager.GetBoolVariable("Gemstone Cavern Open").Value)
                 {
                     GemstoneCaverns.UnlockItem();
                 }
-                if (BlackBridgeGrotto.Solved && BlackBridgeGrotto.Unlocked && !ModInstance.GlobalPersistentManager.GetBoolVariable("Grotto Open").Value)
+                if (BlackBridgeGrotto.Unlocked && !ModInstance.GlobalPersistentManager.GetBoolVariable("Grotto Open").Value)
                 {
                     BlackBridgeGrotto.UnlockItem();
                 }
@@ -174,27 +174,24 @@ namespace RedPrinceArchipelago.Items
                 State2.EnableAction(2);
                 State2.RemoveLastActionOfType<SendEventByName>();
             }
-            if (Solved)
-            {
-                bool wasOpen = ModInstance.GlobalPersistentManager.GetBoolVariable("Gemstone Cavern Open").Value;
-                GameObject.Find("CULL GRID - GROUNDS/UNDERGROUND/Cull - Gemstone Cavern (once revealed)")?.SetActive(true);
-                // Activate Permanent Additions
-                GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /PERMANENT ADDITIONS")?.SetActive(true);
-                // Activate Gemstone Caverns Icon
-                GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /PERMANENT ADDITIONS/4/Gemstone Cavern Icon")?.SetActive(true);
-                GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /PERMANENT ADDITIONS/5/Gemstone Cavern Icon")?.SetActive(true);
-                // Activate and deactivate the required game objects.
-                GameObject.Find("TERRAIN/EAST SECTOR/_CAMPSITE/FAR CULL/_GAMEPLAY do not bake/Gemstone DOOR/Cave Door")?.SetActive(false);
+            bool wasOpen = ModInstance.GlobalPersistentManager.GetBoolVariable("Gemstone Cavern Open").Value;
+            GameObject.Find("CULL GRID - GROUNDS/UNDERGROUND/Cull - Gemstone Cavern (once revealed)")?.SetActive(true);
+            // Activate Permanent Additions
+            GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /PERMANENT ADDITIONS")?.SetActive(true);
+            // Activate Gemstone Caverns Icon
+            GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /PERMANENT ADDITIONS/4/Gemstone Cavern Icon")?.SetActive(true);
+            GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /PERMANENT ADDITIONS/5/Gemstone Cavern Icon")?.SetActive(true);
+            // Activate and deactivate the required game objects.
+            GameObject.Find("TERRAIN/EAST SECTOR/_CAMPSITE/FAR CULL/_GAMEPLAY do not bake/Gemstone DOOR/Cave Door")?.SetActive(false);
 
-                //This is set false by the FSM but needs to be set true. However if the player is too close this will not be rendered properly.
-                //May add a proximity check later.
-                GameObject.Find("TERRAIN/EAST SECTOR/_GEM CAVE")?.SetActive(true);
-                // Set the Bool in the Global Persistent Manager to true.
-                ModInstance.GlobalPersistentManager.GetBoolVariable("Gemstone Cavern Open").Value = true;
-                if (!wasOpen)
-                {
-                    ApplyEffects();
-                }
+            //This is set false by the FSM but needs to be set true. However if the player is too close this will not be rendered properly.
+            //May add a proximity check later.
+            GameObject.Find("TERRAIN/EAST SECTOR/_GEM CAVE")?.SetActive(true);
+            // Set the Bool in the Global Persistent Manager to true.
+            ModInstance.GlobalPersistentManager.GetBoolVariable("Gemstone Cavern Open").Value = true;
+            if (!wasOpen)
+            {
+                ApplyEffects();
             }
         }
 
@@ -315,23 +312,20 @@ namespace RedPrinceArchipelago.Items
                 PlayMakerFSM LabMachine = RoomObject.transform.Find("_GAMEPLAY/Lab Machine").GetComponent<PlayMakerFSM>();
                 LabMachine?.GetState("Chek if Grotto Is Open")?.EnableActionsOfType<GetFsmBool>();
             }
-            if (Solved)
-            {
-                // Only 90% sure this is the correct event.
-                ModInstance.StatsLogger.GetComponent<StatsLogger>().Record_Event(EventID.Blackbridge_Powered);
-                GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /PERMANENT ADDITIONS")?.SetActive(true);
-                // Activate Gemstone Caverns Icon
-                GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /PERMANENT ADDITIONS/4/BlackBridge Grotto Icon")?.SetActive(true);
-                GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /PERMANENT ADDITIONS/5/BlackBridge Grotto Icon")?.SetActive(true);
+            // Only 90% sure this is the correct event.
+            ModInstance.StatsLogger.GetComponent<StatsLogger>().Record_Event(EventID.Blackbridge_Powered);
+            GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /PERMANENT ADDITIONS")?.SetActive(true);
+            // Activate Gemstone Caverns Icon
+            GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /PERMANENT ADDITIONS/4/BlackBridge Grotto Icon")?.SetActive(true);
+            GameObject.Find("UI OVERLAY CAM/MENU/Blue Print /PERMANENT ADDITIONS/5/BlackBridge Grotto Icon")?.SetActive(true);
 
-                GameObject.Find("CULL GRID - GROUNDS/UNDERGROUND/Cull - Grotto (once revealed)")?.SetActive(true);
+            GameObject.Find("CULL GRID - GROUNDS/UNDERGROUND/Cull - Grotto (once revealed)")?.SetActive(true);
 
-                GameObject.Find("TERRAIN/DRIVE SECTOR/HIDE FROM HOUSE/_GAMEPLAY/")?.SetActive(true);
+            GameObject.Find("TERRAIN/DRIVE SECTOR/HIDE FROM HOUSE/_GAMEPLAY/")?.SetActive(true);
 
-                GameObject.Find("TERRAIN/EAST SECTOR/_GROTTO").SetActive(true);
+            GameObject.Find("TERRAIN/EAST SECTOR/_GROTTO").SetActive(true);
 
-                ModInstance.GlobalPersistentManager.GetBoolVariable("Grotto Open").Value = true;
-            }
+            ModInstance.GlobalPersistentManager.GetBoolVariable("Grotto Open").Value = true;
         }
 
         public override void PreventDefault()
@@ -371,8 +365,8 @@ namespace RedPrinceArchipelago.Items
                     GrottoState?.InsertAction(5, unfreeze);
                     GrottoState?.InsertAction(6, FSMEventHandler.RegisteredEvents["Blackbridge Grotto Unlock"].Event);
                     FsmBool GrottoOpen = LabMachine.GetBoolVariable("Grotto Open");
-                    GrottoOpen.Value = Solved;
-                    if (!Solved)
+                    GrottoOpen.Value = Unlocked;
+                    if (!Unlocked)
                     {
                         LabMachine?.GetState("Chek if Grotto Is Open")?.DisableActionsOfType<GetFsmBool>();
                         
