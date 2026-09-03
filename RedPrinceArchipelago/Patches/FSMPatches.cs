@@ -1,4 +1,5 @@
 using RedPrinceArchipelago.Events;
+using RedPrinceArchipelago.Archipelago;
 using RedPrinceArchipelago.Items;
 using RedPrinceArchipelago.Utils;
 using HutongGames.PlayMaker;
@@ -48,7 +49,10 @@ namespace RedPrinceArchipelago.Patches
                     FsmState TombState = GlobalFSM.GetState("State 23");
                     GlobalFSM.AddGlobalTransition("Tomb Upgrade Disk Pickup", "State 22");
                     FsmState CommissaryState = GlobalFSM.GetState("State 33");
-                    GlobalFSM.AddGlobalTransition("Commissary Upgrade Disk Pickup", "State 33");
+                    if (ArchipelagoOptions.SpecialShopSanity)
+                    {
+                        GlobalFSM.AddGlobalTransition("Commissary Upgrade Disk Pickup", "State 33");
+                    }
                     FsmState FoundationState = GlobalFSM.GetState("State 22");
                     GlobalFSM.AddGlobalTransition("Foundation Disk Pickup", "State 22");
                     FsmState FreezerState = GlobalFSM.GetState("State 25");
@@ -116,9 +120,12 @@ namespace RedPrinceArchipelago.Patches
                     TombState.InsertAction(3, unfreeze); // Backup in case the YouFound doesn't work.
 
                     // Add the Commissary Buy Check
-                    CommissaryState.InsertAction(1, freeze);
-                    CommissaryState.InsertAction(2, new ActivateGameObject() { gameObject = new FsmOwnerDefault() { gameObject = UpgradeDisks.YouFoundObjects[3], ownerOption = OwnerDefaultOption.SpecifyGameObject }, activate = true, recursive = false, resetOnExit = false, everyFrame = false });
-                    CommissaryState.InsertAction(3, unfreeze); // Backup in case the YouFound doesn't work.
+                    if (ArchipelagoOptions.SpecialShopSanity)
+                    {
+                        CommissaryState.InsertAction(1, freeze);
+                        CommissaryState.InsertAction(2, new ActivateGameObject() { gameObject = new FsmOwnerDefault() { gameObject = UpgradeDisks.YouFoundObjects[3], ownerOption = OwnerDefaultOption.SpecifyGameObject }, activate = true, recursive = false, resetOnExit = false, everyFrame = false });
+                        CommissaryState.InsertAction(3, unfreeze); // Backup in case the YouFound doesn't work.
+                    }
 
                     // Add the Foundation Pickup Check
                     FoundationState.InsertAction(1, freeze);
@@ -186,7 +193,9 @@ namespace RedPrinceArchipelago.Patches
                 else {
                     Logging.Log("Upgrade Disk Override already applied.");
                 }
-                //Commissary Replacement Code
+                // Commissary remains vanilla unless shop sanity is enabled.
+                if (ArchipelagoOptions.SpecialShopSanity)
+                {
                 PlayMakerFSM CommissaryMenu = GameObject.Find("UI OVERLAY CAM").transform.Find("Commissary Menu")?.GetComponent<PlayMakerFSM>();
                 // Prevent the Default add to inventory behavior.
                 FsmState UpgradeDisksAdd = CommissaryMenu.GetState("Upgrade Disks Add");
@@ -216,6 +225,7 @@ namespace RedPrinceArchipelago.Patches
                     delay = 0f,
                     everyFrame = false
                 });
+                }
                 PlayMakerFSM MineUpgradeSpawn = GameObject.Find("UNDERGROUND/Candle Room/_CULLABLE - candle room/_GAMEPLAY/Mine Joint Pillar/16").GetComponent<PlayMakerFSM>();
                 if (MineUpgradeSpawn != null)
                 {

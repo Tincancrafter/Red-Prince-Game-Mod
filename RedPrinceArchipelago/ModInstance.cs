@@ -230,7 +230,6 @@ namespace RedPrinceArchipelago
         /// </summary>
         private void OnDestroy()
         {
-            DraftCheckHighlighter.RestoreAll();
             SceneManager.sceneLoaded -= (Action<Scene, LoadSceneMode>)OnSceneLoaded;
             Harmony.UnpatchID("ItemPatches");
             Harmony.UnpatchID("EventPatches");
@@ -242,7 +241,6 @@ namespace RedPrinceArchipelago
         ///     Runs every Game Tick.
         /// </summary>
         private void Update() {
-            DraftCheckHighlighter.Update();
             if (IsInRun && ArchipelagoClient.Authenticated)
             {
                 QueueManager.DequeueUsedUpgrade();

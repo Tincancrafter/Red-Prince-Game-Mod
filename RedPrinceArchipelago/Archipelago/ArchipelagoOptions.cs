@@ -76,6 +76,8 @@ public static class ArchipelagoOptions
     /// </summary>
     public static bool KeySanity { get; private set; } = false;
 
+    public static bool SpecialShopSanity { get; private set; } = false;
+
     public static bool BookshopSanity { get; private set; } = false;
 
     public static bool LibraryCheckoutSanity { get; private set; } = false;
@@ -157,6 +159,7 @@ public static class ArchipelagoOptions
             WorkshopSanity = slotData.WorkShopSanity;
             UpgradeDiskSanity = slotData.UpgradeDiskSanity;
             KeySanity = slotData.KeySanity;
+            SpecialShopSanity = slotData.SpecialShopSanity;
             BookshopSanity = slotData.BookshopSanity;
             LibraryCheckoutSanity = slotData.LibraryCheckoutSanity;
             OpAllowance = slotData.OpAllowance;
@@ -205,6 +208,7 @@ public static class ArchipelagoOptions
             WorkshopSanity = GetBool(slotData, "workshop_sanity", false);
             UpgradeDiskSanity = GetBool(slotData, "upgrade_disk_sanity", false);
             KeySanity = GetBool(slotData, "key_sanity", false);
+            SpecialShopSanity = GetBool(slotData, "special_shop_sanity", false);
             BookshopSanity = GetBool(slotData, "bookshop_sanity", false);
             LibraryCheckoutSanity = GetBool(slotData, "library_checkout_sanity", false);
             OpAllowance = GetBool(slotData, "op_allowance", false);
@@ -239,6 +243,7 @@ public static class ArchipelagoOptions
         WorkshopSanity = false;
         UpgradeDiskSanity = false;
         KeySanity = false;
+        SpecialShopSanity = false;
         BookshopSanity = false;
         LibraryCheckoutSanity = false;
         OpAllowance = false;
@@ -270,6 +275,7 @@ public static class ArchipelagoOptions
         Logging.Log($"  WorkshopSanity: {WorkshopSanity}");
         Logging.Log($"  UpgradeDiskSanity: {UpgradeDiskSanity}");
         Logging.Log($"  KeySanity: {KeySanity}");
+        Logging.Log($"  SpecialShopSanity: {SpecialShopSanity}");
         Logging.Log($"  BookshopSanity: {BookshopSanity}");
         Logging.Log($"  LibraryCheckoutSanity: {LibraryCheckoutSanity}");
         Logging.Log($"  OpAllowance: {OpAllowance}");

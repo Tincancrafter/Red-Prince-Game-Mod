@@ -872,6 +872,20 @@ namespace RedPrinceArchipelago.Rooms
         }
         // Helper function that updates 1 array at a time.
         public void UpdateArray(PlayMakerArrayListProxy array, int count) {
+            // Once all allowed copies have been drafted, remove any stale
+            // entries the game left in (or restored to) the picker array.
+            // Previously the outer RoomsLeftInPool check skipped this case,
+            // which allowed unique rooms such as The Foundation to reappear.
+            if (!_UseVanilla && RoomsLeftInPool <= 0)
+            {
+                if (count > 0)
+                {
+                    RemoveFromPool(array, count);
+                    Logging.Log($"Removed {Name} from {array.name}: no copies remain for this run.", "Rooms");
+                }
+                return;
+            }
+
             if (RoomsLeftInPool > 0)
             {
                 // If the room has at least one copy currently in the pool

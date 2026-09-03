@@ -478,6 +478,7 @@ namespace RedPrinceArchipelago.Items
             if (prefab != null) {
                 for (int i = 1; i < 17; i++)
                 {
+                    if (i == 4 && !ArchipelagoOptions.SpecialShopSanity) continue;
                     GameObject spawnObj = null;
                     // Get the APswirly Component of the Prefab and reparent it to the spawn prefab.
                     if (i < 10)
@@ -513,6 +514,7 @@ namespace RedPrinceArchipelago.Items
             GameObject item = null;
             foreach (string location in UpgradeDisks.Locations) {
                 j++;
+                if (location == "COMMISSARY" && !ArchipelagoOptions.SpecialShopSanity) continue;
                 
                 if (j < 10)
                 {
