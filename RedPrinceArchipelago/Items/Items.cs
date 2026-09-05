@@ -465,8 +465,14 @@ namespace RedPrinceArchipelago.Items
                 Logging.LogWarning($"Unable to change spawn prefab for {item.Name}, error finding prefab with name: {item.Name}(Clone)001");
                 return;
             }
-            // Delete the AP Swirly SubObject.
-            GameObject.Destroy(spawnObj.transform.FindChild("AP Swirlie").gameObject);
+            // The decoration may already have been removed (for example after a
+            // scene refresh or when a kept item is restored). Treat that as the
+            // desired end state instead of aborting the Archipelago item queue.
+            Transform swirly = spawnObj.transform.FindChild("AP Swirlie");
+            if (swirly != null)
+            {
+                GameObject.Destroy(swirly.gameObject);
+            }
             item.ModelReplaced = false;
         }
 

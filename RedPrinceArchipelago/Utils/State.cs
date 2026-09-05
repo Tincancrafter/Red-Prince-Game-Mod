@@ -104,6 +104,19 @@ namespace RedPrinceArchipelago.Utils
                 writer.Flush();
             }
         }
+
+        /// <summary>
+        /// Clears server-owned progression cached from an earlier AP room while
+        /// preserving the selected server, slot, game save slot, and seed.
+        /// </summary>
+        public static void ResetProgressionCache()
+        {
+            ArchipelagoClient.ServerData.CheckedLocations = new List<long>();
+            ArchipelagoClient.ServerData.ReceivedItems = new List<string>();
+            ArchipelagoClient.ServerData.Index = 0;
+            UpdateLocations(ArchipelagoClient.ServerData.CheckedLocations);
+            UpdateItems(ArchipelagoClient.ServerData.ReceivedItems);
+        }
         public static void UpdateServerDetails(List<string> data)
         {
             ConnectionData connData = new ConnectionData();

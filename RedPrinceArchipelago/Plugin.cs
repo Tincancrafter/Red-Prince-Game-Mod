@@ -19,7 +19,7 @@ namespace RedPrinceArchipelago {
         public const string PluginGUID = "io.github.redprince.archipelago";
         public const string PluginName = "Red Prince Archipelago";
         public const string PluginFolderName = "RedPrinceArchipelago";
-        public const string PluginVersion = "1.0.12";
+        public const string PluginVersion = "1.0.13";
 
         private static Plugin _instance;
         public static Plugin Instance => _instance;

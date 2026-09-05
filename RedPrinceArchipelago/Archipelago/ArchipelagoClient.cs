@@ -166,10 +166,25 @@ public class ArchipelagoClient
         // Else handle login.
         else if (loginResult is LoginSuccessful success)
         {
+            // A newly hosted AP room can reuse the same generated seed name.
+            // An empty server paired with cached local checks identifies that
+            // case; do not upload the previous room's progress into the new one.
+            bool freshRoomForSameSeed =
+                ServerData.Seed == session.RoomState.Seed &&
+                ServerData.CheckedLocations.Count > 0 &&
+                session.Locations.AllLocationsChecked.Count == 0;
+            if (freshRoomForSameSeed)
+            {
+                ArchipelagoConsole.LogMessage("Connected to a fresh room for this seed. Clearing cached progression from the previous room.");
+                State.ResetProgressionCache();
+                ModInstance.QueueManager.SetItemQueue(new List<ItemInfo>());
+                ModInstance.QueueManager.SetLocationQueue(new List<string>());
+                Reconnected = false;
+            }
             // Check if the Seed and options match the expected Seed and Options.
             if (ServerData.Seed == "" || ServerData.Seed == session.RoomState.Seed) {
                 //If the Seed data was already stored this is a recconnect.
-                if (ServerData.Seed == session.RoomState.Seed) {
+                if (!freshRoomForSameSeed && ServerData.Seed == session.RoomState.Seed) {
                     Reconnected = true;
                 }
                 HandleConnectResult(loginResult);
